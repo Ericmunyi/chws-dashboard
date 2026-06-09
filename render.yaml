@@ -1,0 +1,36 @@
+services:
+  - type: web
+    name: chws-dashboard
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "10000"
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 24h
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 7d
+      - key: OPENMRS_BASE_URL
+        value: http://localhost:8080/openmrs/ws/fhir2/R4
+      - key: OPENMRS_USERNAME
+        value: admin
+      - key: OPENMRS_PASSWORD
+        value: Admin123
+      - key: ECHIS_API_URL
+        value: https://api.echis.kenya.go.ke/v1
+      - key: ECHIS_API_KEY
+        sync: false
+      - key: SYNC_INTERVAL_MS
+        value: "300000"
+      - key: SYNC_BATCH_SIZE
+        value: "100"

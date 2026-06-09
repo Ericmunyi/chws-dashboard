@@ -1,0 +1,158 @@
+const { Router } = require('express');
+const { body } = require('express-validator');
+const { v4: uuidv4 } = require('uuid');
+const { authenticate, authorize } = require('../middleware/auth');
+const { validate } = require('../middleware/validate');
+const { db } = require('../models');
+const syncService = require('../services/syncService');
+const { USER_ROLES, SYNC_DIRECTIONS, SYNC_ENTITY_TYPES } = require('../config/constants');
+
+const router = Router();
+
+router.get(
+  '/',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW, USER_ROLES.VIEWER),
+  async (req, res, next) => {
+    try {
+      const { page = 1, limit = 20, search, status, village, chwId } = req.query;
+      const offset = (parseInt(page) - 1) * parseInt(limit);
+
+      let query = db.patients()
+        .select(
+          'patients.*',
+          db.knex.raw("(chw.first_name || ' ' || chw.last_name) as assigned_chw_name")
+        )
+        .leftJoin('users as chw', 'patients.assigned_chw_id', 'chw.id')
+        .orderBy('patients.created_at', 'desc');
+
+      if (search) {
+        query = query.where(function () {
+          this.where('patients.first_name', 'like', `%${search}%`)
+            .orWhere('patients.last_name', 'like', `%${search}%`)
+            .orWhere('patients.national_id', 'like', `%${search}%`)
+            .orWhere('patients.phone', 'like', `%${search}%`);
+        });
+      }
+      if (status) query = query.where('patients.status', status);
+      if (village) query = query.where('patients.village', village);
+      if (chwId) query = query.where('patients.assigned_chw_id', chwId);
+
+      const [{ count }] = await query.clone().clearSelect().count('patients.id as count');
+      const patients = await query.limit(parseInt(limit)).offset(offset);
+
+      res.json({
+        data: patients,
+        pagination: {
+          page: parseInt(page),
+          limit: parseInt(limit),
+          total: parseInt(count),
+          totalPages: Math.ceil(parseInt(count) / parseInt(limit)),
+        },
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get('/:id', authenticate, async (req, res, next) => {
+  try {
+    const patient = await db.patients()
+      .select(
+        'patients.*',
+        db.knex.raw("(chw.first_name || ' ' || chw.last_name) as assigned_chw_name")
+      )
+      .leftJoin('users as chw', 'patients.assigned_chw_id', 'chw.id')
+      .where('patients.id', req.params.id)
+      .first();
+
+    if (!patient) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    const encounters = await db.encounters()
+      .where({ patient_id: patient.id })
+      .orderBy('encounter_datetime', 'desc')
+      .limit(20);
+
+    res.json({ ...patient, encounters });
+  } catch (err) {
+    next(err);
+  }
+});
+
+router.post(
+  '/',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW),
+  [
+    body('firstName').trim().notEmpty(),
+    body('lastName').trim().notEmpty(),
+    body('dateOfBirth').isDate(),
+    body('gender').isIn(['Male', 'Female', 'Other']),
+    validate,
+  ],
+  async (req, res, next) => {
+    try {
+      const [patient] = await db.patients()
+        .insert({
+          id: uuidv4(),
+          first_name: req.body.firstName,
+          last_name: req.body.lastName,
+          middle_name: req.body.middleName,
+          date_of_birth: req.body.dateOfBirth,
+          gender: req.body.gender,
+          phone: req.body.phone,
+          national_id: req.body.nationalId,
+          village: req.body.village,
+          ward: req.body.ward,
+          sub_county: req.body.subCounty,
+          county: req.body.county,
+          assigned_chw_id: req.body.assignedChwId || req.user.id,
+          address: req.body.address,
+          status: 'active',
+        })
+        .returning('*');
+
+      await syncService.queueEntity(SYNC_ENTITY_TYPES.PATIENT, patient.id, SYNC_DIRECTIONS.PUSH_TO_ECHIS);
+
+      res.status(201).json(patient);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.put('/:id', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW), async (req, res, next) => {
+  try {
+    const [updated] = await db.patients()
+      .where({ id: req.params.id })
+      .update({
+        first_name: req.body.firstName,
+        last_name: req.body.lastName,
+        middle_name: req.body.middleName,
+        phone: req.body.phone,
+        village: req.body.village,
+        ward: req.body.ward,
+        sub_county: req.body.subCounty,
+        county: req.body.county,
+        address: req.body.address,
+        status: req.body.status,
+        updated_at: new Date(),
+      })
+      .returning('*');
+
+    if (!updated) {
+      return res.status(404).json({ error: 'Patient not found' });
+    }
+
+    await syncService.queueEntity(SYNC_ENTITY_TYPES.PATIENT, updated.id, SYNC_DIRECTIONS.PUSH_TO_ECHIS);
+
+    res.json(updated);
+  } catch (err) {
+    next(err);
+  }
+});
+
+module.exports = router;
