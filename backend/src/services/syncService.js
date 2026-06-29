@@ -137,13 +137,18 @@ const syncService = {
   },
 
   async retryFailedItems() {
-    const failed = await db.syncLog()
+    const items = await db.syncLog()
       .where({ status: 'failed' })
       .where('attempt_count', '<', 5)
-      .update({ status: 'pending' })
-      .returning('*');
-    logger.info(`Retrying ${failed.length} failed sync items`);
-    return failed;
+      .select('*');
+
+    if (items.length > 0) {
+      const ids = items.map((i) => i.id);
+      await db.syncLog().whereIn('id', ids).update({ status: 'pending' });
+    }
+
+    logger.info(`Retrying ${items.length} failed sync items`);
+    return items;
   },
 
   _toFHIRPatient(patient) {

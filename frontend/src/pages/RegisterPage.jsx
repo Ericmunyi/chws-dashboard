@@ -27,6 +27,18 @@ export default function RegisterPage() {
       toast.error('All fields are required');
       return;
     }
+    if (username.length < 3) {
+      toast.error('Username must be at least 3 characters');
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      toast.error('Please enter a valid email address');
+      return;
+    }
+    if (password.length < 8) {
+      toast.error('Password must be at least 8 characters');
+      return;
+    }
     setLoading(true);
     try {
       await authAPI.register(form);

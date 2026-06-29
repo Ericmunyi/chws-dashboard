@@ -11,7 +11,7 @@ router.get(
   authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW, USER_ROLES.VIEWER),
   async (req, res, next) => {
     try {
-      const stats = await dashboardService.getSummaryStats();
+      const stats = await dashboardService.getSummaryStats(req.user);
       res.json(stats);
     } catch (err) {
       next(err);
@@ -42,7 +42,7 @@ router.get(
       const filters = {
         startDate: req.query.startDate,
         endDate: req.query.endDate,
-        chwId: req.query.chwId,
+        chwId: req.user.role === 'chw' ? req.user.id : req.query.chwId,
       };
       const activity = await dashboardService.getCHWActivity(filters);
       res.json(activity);
@@ -72,8 +72,22 @@ router.get(
   authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW),
   async (req, res, next) => {
     try {
-      const stats = await dashboardService.getPatientStats();
+      const stats = await dashboardService.getPatientStats(req.user);
       res.json(stats);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
+  '/recent-referrals',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW, USER_ROLES.VIEWER),
+  async (req, res, next) => {
+    try {
+      const referrals = await dashboardService.getRecentReferrals(req.user, parseInt(req.query.limit) || 10);
+      res.json(referrals);
     } catch (err) {
       next(err);
     }

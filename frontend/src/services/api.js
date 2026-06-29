@@ -1,12 +1,21 @@
 import axios from 'axios';
 import toast from 'react-hot-toast';
+import { offlineDB } from './db';
+
+let offlineQueue = null;
+let isToastShowing = false;
+
+export function setOfflineQueue(queueFn) {
+  offlineQueue = queueFn;
+}
 
 const api = axios.create({
   baseURL: '/api',
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 });
 
-api.interceptors.request.use((config) => {
+api.interceptors.request.use(async (config) => {
   const token = localStorage.getItem('accessToken');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
@@ -15,13 +24,56 @@ api.interceptors.request.use((config) => {
 });
 
 api.interceptors.response.use(
-  (response) => response,
+  async (response) => {
+    if (response.config.method === 'get' && response.status === 200) {
+      const cacheKey = `get:${response.config.url}`;
+      try {
+        await offlineDB.set(cacheKey, response.data);
+      } catch {}
+    }
+    return response;
+  },
   async (error) => {
     const originalRequest = error.config;
 
+    if (!originalRequest || originalRequest._retry) {
+      return Promise.reject(error);
+    }
+
+    if (error.code === 'ERR_NETWORK' || !navigator.onLine) {
+      if (originalRequest.method === 'get' && !originalRequest._fromOffline) {
+        const cacheKey = `get:${originalRequest.url}`;
+        try {
+          const cached = await offlineDB.get(cacheKey);
+          if (cached !== null) {
+            if (!isToastShowing) {
+              isToastShowing = true;
+              toast('Showing cached data (offline)', { icon: '📡', duration: 3000 });
+              setTimeout(() => { isToastShowing = false; }, 3000);
+            }
+            return Promise.resolve({ data: cached, fromCache: true });
+          }
+        } catch {}
+      }
+
+      if (originalRequest.method !== 'get' && offlineQueue) {
+        try {
+          await offlineQueue(originalRequest.method, originalRequest.url, originalRequest.data);
+          toast.success('Saved offline. Will sync when connected.');
+          return Promise.resolve({ data: { queued: true }, offline: true });
+        } catch {}
+      }
+
+      if (!isToastShowing) {
+        isToastShowing = true;
+        toast.error('No network connection');
+        setTimeout(() => { isToastShowing = false; }, 3000);
+      }
+      return Promise.reject(error);
+    }
+
     if (
       error.response?.status === 401 &&
-      !originalRequest._retry &&
       originalRequest.url !== '/auth/login' &&
       originalRequest.url !== '/auth/refresh'
     ) {
@@ -48,8 +100,7 @@ api.interceptors.response.use(
       }
     }
 
-    const message =
-      error.response?.data?.message || error.message || 'An error occurred';
+    const message = error.response?.data?.message || error.message || 'An error occurred';
     if (error.response?.status !== 401) {
       toast.error(message);
     }
@@ -75,6 +126,8 @@ export const dashboardAPI = {
     api.get('/dashboard/chw-activity', { params }).then((r) => r.data),
   health: () => api.get('/dashboard/health').then((r) => r.data),
   patientStats: () => api.get('/dashboard/patient-stats').then((r) => r.data),
+  recentReferrals: (params) =>
+    api.get('/dashboard/recent-referrals', { params }).then((r) => r.data),
 };
 
 export const patientsAPI = {
@@ -84,11 +137,29 @@ export const patientsAPI = {
   update: (id, data) => api.put(`/patients/${id}`, data).then((r) => r.data),
 };
 
+export const householdsAPI = {
+  list: (params) => api.get('/households', { params }).then((r) => r.data),
+  get: (id) => api.get(`/households/${id}`).then((r) => r.data),
+  create: (data) => api.post('/households', data).then((r) => r.data),
+  update: (id, data) => api.put(`/households/${id}`, data).then((r) => r.data),
+};
+
+export const referralsAPI = {
+  list: (params) => api.get('/referrals', { params }).then((r) => r.data),
+  create: (data) => api.post('/referrals', data).then((r) => r.data),
+};
+
 export const syncAPI = {
   trigger: () => api.post('/sync/trigger').then((r) => r.data),
   timeline: (params) => api.get('/sync/timeline', { params }).then((r) => r.data),
   retryFailed: () => api.get('/sync/retry-failed').then((r) => r.data),
   queue: (data) => api.post('/sync/queue', data).then((r) => r.data),
+};
+
+export const paymentsAPI = {
+  summary: () => api.get('/payments/summary').then((r) => r.data),
+  list: (params) => api.get('/payments', { params }).then((r) => r.data),
+  create: (data) => api.post('/payments', data).then((r) => r.data),
 };
 
 export default api;

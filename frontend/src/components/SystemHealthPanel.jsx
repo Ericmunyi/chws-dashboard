@@ -36,8 +36,8 @@ export default function SystemHealthPanel({ data }) {
         <div key={system.name} className="card p-4">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
-              <system.icon className="w-4 h-4 text-gray-400" />
-              <span className="text-sm font-medium text-gray-700">{system.name}</span>
+              <system.icon className="w-4 h-4 text-primary-500" />
+              <span className="text-sm font-bold text-primary-700">{system.name}</span>
             </div>
             {system.status === 'connected' ? (
               <span className="badge-success gap-1">

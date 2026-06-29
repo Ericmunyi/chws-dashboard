@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-  PieChart, Pie, Cell, Legend, LineChart, Line
+  PieChart, Pie, Cell, Legend
 } from 'recharts';
-import { BarChart3, Loader2, RefreshCw, Download } from 'lucide-react';
+import { Loader2, RefreshCw, Download } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { dashboardAPI } from '../services/api';
 
 const COLORS = ['#3b82f6', '#22c55e', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899'];
@@ -66,7 +67,10 @@ export default function AnalyticsPage() {
             <RefreshCw className="w-4 h-4 mr-2" />
             Refresh
           </button>
-          <button className="btn-primary text-sm">
+          <button
+            onClick={() => toast.info('Report export coming soon')}
+            className="btn-primary text-sm"
+          >
             <Download className="w-4 h-4 mr-2" />
             Export Report
           </button>

@@ -37,6 +37,9 @@ router.get(
       if (status) query = query.where('patients.status', status);
       if (village) query = query.where('patients.village', village);
       if (chwId) query = query.where('patients.assigned_chw_id', chwId);
+      if (req.user.role === 'chw') {
+        query = query.where('patients.assigned_chw_id', req.user.id);
+      }
 
       const [{ count }] = await query.clone().clearSelect().count('patients.id as count');
       const patients = await query.limit(parseInt(limit)).offset(offset);

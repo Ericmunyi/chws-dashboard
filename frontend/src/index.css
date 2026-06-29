@@ -6,17 +6,20 @@
   body {
     @apply antialiased text-gray-900;
   }
+  th {
+    @apply text-blue-800 !important;
+  }
 }
 
 @layer components {
   .stat-card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200 p-6 transition-all duration-200 hover:shadow-md;
+    @apply bg-white rounded-xl shadow-sm border border-blue-100 p-6 transition-all duration-200 hover:shadow-md hover:border-blue-200;
   }
   .stat-label {
-    @apply text-sm font-medium text-gray-500;
+    @apply text-sm font-medium text-blue-600;
   }
   .stat-value {
-    @apply text-3xl font-bold text-gray-900 mt-1;
+    @apply text-3xl font-bold text-primary-800 mt-1;
   }
   .badge {
     @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
@@ -49,10 +52,10 @@
     @apply block w-full rounded-lg border border-gray-300 px-3 py-2 text-sm shadow-sm placeholder-gray-400 focus:border-primary-500 focus:outline-none focus:ring-1 focus:ring-primary-500;
   }
   .card {
-    @apply bg-white rounded-xl shadow-sm border border-gray-200;
+    @apply bg-white rounded-xl shadow-sm border border-blue-100;
   }
   .card-header {
-    @apply px-6 py-4 border-b border-gray-200;
+    @apply px-6 py-4 border-b border-blue-100;
   }
   .card-body {
     @apply p-6;

@@ -1,20 +1,26 @@
 const { db } = require('../models');
 
 const dashboardService = {
-  async getSummaryStats() {
+  async getSummaryStats(user = null) {
+    const isChw = user && user.role === 'chw';
+    const chwFilter = isChw ? { assigned_chw_id: user.id } : {};
+    const chwActivitiesFilter = isChw ? { chw_id: user.id } : {};
+
     const [
       totalPatients, totalHouseholds, totalCHWs, totalEncounters,
-      pendingSyncs, failedSyncs, activeVisitsThisMonth,
+      pendingSyncs, failedSyncs, activeVisitsThisMonth, totalReferrals,
     ] = await Promise.all([
-      db.patients().where({ status: 'active' }).count('id as count').first(),
-      db.households().where({ status: 'active' }).count('id as count').first(),
+      db.patients().where({ status: 'active', ...chwFilter }).count('id as count').first(),
+      db.households().where({ status: 'active', ...(isChw ? { assigned_chw_id: user.id } : {}) }).count('id as count').first(),
       db.users().where({ role: 'chw', is_active: 1 }).count('id as count').first(),
       db.encounters().count('id as count').first(),
       db.syncLog().where({ status: 'pending' }).count('id as count').first(),
       db.syncLog().where({ status: 'failed' }).count('id as count').first(),
       db.chwActivities()
         .where('visit_date', '>=', new Date(new Date().setDate(1)).toISOString())
+        .where(chwActivitiesFilter)
         .count('id as count').first(),
+      db.encounters().where({ encounter_type: 'referral' }).count('id as count').first(),
     ]);
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -39,7 +45,31 @@ const dashboardService = {
       failedSyncs: parseInt(failedSyncs.count),
       activeVisitsThisMonth: parseInt(activeVisitsThisMonth.count),
       syncSuccessRate,
+      totalReferrals: parseInt(totalReferrals.count),
     };
+  },
+
+  async getRecentReferrals(user = null, limit = 10) {
+    let query = db.encounters()
+      .select(
+        'encounters.*',
+        db.knex.raw("(p.first_name || ' ' || p.last_name) as patient_name"),
+        db.knex.raw("(chw.first_name || ' ' || chw.last_name) as chw_name")
+      )
+      .join('patients as p', 'encounters.patient_id', 'p.id')
+      .leftJoin('users as chw', 'encounters.chw_id', 'chw.id')
+      .where('encounters.encounter_type', 'referral')
+      .orderBy('encounters.encounter_datetime', 'desc');
+
+    if (user && user.role === 'chw') {
+      query = query.where('encounters.chw_id', user.id);
+    }
+
+    const referrals = await query.limit(limit);
+    return referrals.map((r) => ({
+      ...r,
+      details: r.observations ? JSON.parse(r.observations) : null,
+    }));
   },
 
   async getSyncStatus() {
@@ -130,15 +160,19 @@ const dashboardService = {
     };
   },
 
-  async getPatientStats() {
-    const total = await db.patients().count('id as count').first();
+  async getPatientStats(user = null) {
+    const isChw = user && user.role === 'chw';
+    const chwFilter = isChw ? { assigned_chw_id: user.id } : {};
+
+    const total = await db.patients().where(chwFilter).count('id as count').first();
 
     const byGender = await db.patients()
+      .where(chwFilter)
       .select('gender')
       .count('id as count')
       .groupBy('gender');
 
-    const rows = await db.patients().select('date_of_birth');
+    const rows = await db.patients().where(chwFilter).select('date_of_birth');
     const ageGroups = {};
     const now = new Date();
     for (const r of rows) {
@@ -161,6 +195,7 @@ const dashboardService = {
       .select('village')
       .count('id as count')
       .whereNotNull('village')
+      .where(chwFilter)
       .groupBy('village')
       .orderBy('count', 'desc');
 

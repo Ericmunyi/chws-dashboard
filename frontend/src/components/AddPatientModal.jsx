@@ -22,9 +22,17 @@ export default function AddPatientModal({ onClose, onSuccess }) {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { firstName, lastName, dateOfBirth, gender } = form;
+    const { firstName, lastName, dateOfBirth, gender, phone, nationalId } = form;
     if (!firstName || !lastName || !dateOfBirth || !gender) {
       toast.error('First name, last name, date of birth, and gender are required');
+      return;
+    }
+    if (!firstName.trim() || !lastName.trim()) {
+      toast.error('Name fields cannot be empty');
+      return;
+    }
+    if (phone && !/^\+?[\d\s-]{6,15}$/.test(phone)) {
+      toast.error('Please enter a valid phone number');
       return;
     }
     setLoading(true);

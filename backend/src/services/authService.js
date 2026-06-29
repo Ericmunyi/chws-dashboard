@@ -40,6 +40,7 @@ const authService = {
     const tokens = generateTokens(user);
 
     await db.refreshTokens().insert({
+      id: uuidv4(),
       user_id: user.id,
       token: tokens.refreshToken,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -48,6 +49,7 @@ const authService = {
     await db.users().where({ id: user.id }).update({ last_login_at: new Date() });
 
     await db.knex('audit_log').insert({
+      id: uuidv4(),
       user_id: user.id,
       action: 'login',
       details: JSON.stringify({ method: 'password' }),
@@ -94,6 +96,7 @@ const authService = {
 
     await db.refreshTokens().where({ id: stored.id }).del();
     await db.refreshTokens().insert({
+      id: uuidv4(),
       user_id: user.id,
       token: tokens.refreshToken,
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
@@ -119,6 +122,7 @@ const authService = {
     await db.refreshTokens().where({ user_id: userId }).del();
 
     await db.knex('audit_log').insert({
+      id: uuidv4(),
       user_id: userId,
       action: 'logout',
       details: JSON.stringify({ method: 'manual' }),
@@ -154,9 +158,9 @@ const authService = {
     if (filters.is_active !== undefined) query = query.where({ is_active: filters.is_active });
     if (filters.search) {
       query = query.where(function () {
-        this.where('first_name', 'ilike', `%${filters.search}%`)
-          .orWhere('last_name', 'ilike', `%${filters.search}%`)
-          .orWhere('email', 'ilike', `%${filters.search}%`);
+        this.where('first_name', 'like', `%${filters.search}%`)
+          .orWhere('last_name', 'like', `%${filters.search}%`)
+          .orWhere('email', 'like', `%${filters.search}%`);
       });
     }
 

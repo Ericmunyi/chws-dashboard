@@ -12,11 +12,18 @@ const rateLimit = require('express-rate-limit');
 const { db, knex } = require('./models');
 const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
 const logger = require('./config/logger');
+const bcrypt = require('bcryptjs');
+const { v4: uuidv4 } = require('uuid');
 
 const authRoutes = require('./routes/auth');
 const dashboardRoutes = require('./routes/dashboard');
 const patientRoutes = require('./routes/patients');
 const syncRoutes = require('./routes/sync');
+const settingsRoutes = require('./routes/settings');
+const householdRoutes = require('./routes/households');
+const referralRoutes = require('./routes/referrals');
+const paymentRoutes = require('./routes/payments');
+const patientPortalRoutes = require('./routes/patientPortal');
 const syncService = require('./services/syncService');
 
 const app = express();
@@ -38,7 +45,7 @@ app.use(morgan('combined', { stream: { write: (msg) => logger.http(msg.trim()) }
 
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 500,
   message: { error: 'Too many requests', message: 'Please try again later' },
 });
 app.use('/api/', limiter);
@@ -47,6 +54,11 @@ app.use('/api/auth', authRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/patients', patientRoutes);
 app.use('/api/sync', syncRoutes);
+app.use('/api/settings', settingsRoutes);
+app.use('/api/households', householdRoutes);
+app.use('/api/referrals', referralRoutes);
+app.use('/api/payments', paymentRoutes);
+app.use('/api/patient-portal', patientPortalRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -93,8 +105,34 @@ async function runMigrations() {
   }
 }
 
+async function seedIfEmpty() {
+  try {
+    const userCount = await db.users().count('id as count').first();
+    if (userCount.count > 0) return;
+
+    logger.info('No users found — seeding initial data...');
+    const hash = await bcrypt.hash('Password123!', 12);
+
+    const users = [
+      { id: uuidv4(), username: 'admin', email: 'admin@chws.gov', password_hash: hash, first_name: 'System', last_name: 'Admin', role: 'admin', phone: '+254700100001', is_active: 1 },
+      { id: uuidv4(), username: 'manager', email: 'manager@chws.gov', password_hash: hash, first_name: 'Jane', last_name: 'Wanjiku', role: 'manager', phone: '+254700100002', is_active: 1 },
+      { id: uuidv4(), username: 'chw1', email: 'chw1@chws.gov', password_hash: hash, first_name: 'John', last_name: 'Kamau', role: 'chw', phone: '+254700100003', is_active: 1 },
+      { id: uuidv4(), username: 'chw2', email: 'chw2@chws.gov', password_hash: hash, first_name: 'Mary', last_name: 'Achieng', role: 'chw', phone: '+254700100004', is_active: 1 },
+    ];
+
+    for (const u of users) {
+      await db.users().insert(u);
+    }
+
+    logger.info('Seeded admin/manager/chw1/chw2 users (password: Password123!)');
+  } catch (err) {
+    logger.warn('Auto-seed skipped', { error: err.message });
+  }
+}
+
 server.listen(PORT, async () => {
   await runMigrations();
+  await seedIfEmpty();
   logger.info(`CHWS Dashboard API running on port ${PORT}`);
   logger.info(`Environment: ${process.env.NODE_ENV || 'development'}`);
 

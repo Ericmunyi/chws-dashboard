@@ -21,6 +21,7 @@ const db = {
   regions: () => knex('regions'),
   refreshTokens: () => knex('refresh_tokens'),
   systemConfig: () => knex('system_config'),
+  payments: () => knex('payments'),
   knex,
 };
 

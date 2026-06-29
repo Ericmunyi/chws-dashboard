@@ -7,7 +7,7 @@
     "install:backend": "cd backend && npm install",
     "install:all": "npm run install:frontend && npm run install:backend",
     "build:frontend": "cd frontend && npm run build",
-    "build": "npm run install:frontend && npm run build:frontend",
+    "build": "npm run install:all && npm run build:frontend",
     "start": "cd backend && node src/index.js",
     "postinstall": "npm run install:backend"
   },

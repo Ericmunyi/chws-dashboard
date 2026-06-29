@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend
 } from 'recharts';
 import {
-  RefreshCw, AlertTriangle, CheckCircle, Clock, ArrowUpDown, Loader2
+  RefreshCw, Loader2, RotateCcw
 } from 'lucide-react';
 import { syncAPI } from '../services/api';
 import { useSocket } from '../context/SocketContext';
+import toast from 'react-hot-toast';
 
 const STATUS_COLORS = {
   success: '#22c55e',
@@ -18,6 +19,7 @@ const STATUS_COLORS = {
 export default function SyncStatusPanel({ data, onRefresh }) {
   const { lastSyncUpdate } = useSocket();
   const [syncing, setSyncing] = useState(false);
+  const [retrying, setRetrying] = useState(false);
 
   if (!data) {
     return (
@@ -55,10 +57,23 @@ export default function SyncStatusPanel({ data, onRefresh }) {
     }
   };
 
+  const handleRetryFailed = async () => {
+    setRetrying(true);
+    try {
+      const result = await syncAPI.retryFailed();
+      toast.success(`Retrying ${result.retried} failed item(s)`);
+      onRefresh?.();
+    } catch (err) {
+      toast.error('Failed to retry sync items');
+    } finally {
+      setRetrying(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-gray-900">eCHIS & OpenMRS Sync Status</h3>
+        <h3 className="text-lg font-bold text-primary-700">eCHIS & OpenMRS Sync Status</h3>
         <div className="flex items-center gap-3">
           {lastSyncTime && (
             <span className="text-xs text-gray-500">
@@ -71,6 +86,19 @@ export default function SyncStatusPanel({ data, onRefresh }) {
               Live
             </span>
           )}
+          <button
+            onClick={handleRetryFailed}
+            disabled={retrying}
+            className="btn-secondary text-sm"
+            title="Retry failed sync items"
+          >
+            {retrying ? (
+              <Loader2 className="w-4 h-4 animate-spin mr-2" />
+            ) : (
+              <RotateCcw className="w-4 h-4 mr-2" />
+            )}
+            Retry Failed
+          </button>
           <button
             onClick={handleManualSync}
             disabled={syncing}
@@ -88,7 +116,7 @@ export default function SyncStatusPanel({ data, onRefresh }) {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <div className="card p-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-4">Sync by Direction</h4>
+          <h4 className="text-sm font-bold text-primary-600 mb-4">Sync by Direction</h4>
           <ResponsiveContainer width="100%" height={250}>
             <BarChart data={directionChart}>
               <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
@@ -109,7 +137,7 @@ export default function SyncStatusPanel({ data, onRefresh }) {
         </div>
 
         <div className="card p-6">
-          <h4 className="text-sm font-medium text-gray-700 mb-4">Sync by Entity Type</h4>
+          <h4 className="text-sm font-bold text-primary-600 mb-4">Sync by Entity Type</h4>
           <div className="space-y-3">
             {byEntity
               .reduce((acc, item) => {
@@ -149,17 +177,17 @@ export default function SyncStatusPanel({ data, onRefresh }) {
       {latestActivity.length > 0 && (
         <div className="card">
           <div className="card-header">
-            <h4 className="text-sm font-medium text-gray-700">Recent Sync Activity</h4>
+            <h4 className="text-sm font-bold text-primary-600">Recent Sync Activity</h4>
           </div>
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-gray-100">
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Entity</th>
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Direction</th>
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Status</th>
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Time</th>
-                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Error</th>
+                <tr className="border-b border-blue-100">
+                  <th className="text-left px-6 py-3 text-blue-700 font-medium">Entity</th>
+                  <th className="text-left px-6 py-3 text-blue-700 font-medium">Direction</th>
+                  <th className="text-left px-6 py-3 text-blue-700 font-medium">Status</th>
+                  <th className="text-left px-6 py-3 text-blue-700 font-medium">Time</th>
+                  <th className="text-left px-6 py-3 text-blue-700 font-medium">Error</th>
                 </tr>
               </thead>
               <tbody>

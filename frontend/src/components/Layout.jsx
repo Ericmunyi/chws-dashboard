@@ -2,13 +2,16 @@ import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, Activity, Users, BarChart3, Settings, LogOut,
-  Menu, X, ChevronDown, RefreshCw, User, Bell
+  Menu, X, RefreshCw, User, Bell, Home, Wallet, Smartphone
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const navItems = [
   { to: '/', icon: LayoutDashboard, label: 'Dashboard', end: true },
   { to: '/patients', icon: Users, label: 'Patients', roles: ['admin', 'manager', 'chw'] },
+  { to: '/payments', icon: Wallet, label: 'Payments', roles: ['admin', 'manager', 'chw'] },
+  { to: '/households', icon: Home, label: 'Households', roles: ['admin', 'manager', 'chw'] },
+  { to: '/patient-portal', icon: Smartphone, label: 'Patient Portal' },
   { to: '/sync', icon: RefreshCw, label: 'Sync Status', roles: ['admin', 'manager'] },
   { to: '/analytics', icon: BarChart3, label: 'Analytics', roles: ['admin', 'manager'] },
   { to: '/settings', icon: Settings, label: 'Settings', roles: ['admin'] },
@@ -25,19 +28,19 @@ export default function Layout({ children }) {
   };
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gray-50">
+    <div className="flex h-screen overflow-hidden bg-blue-50">
       <aside
-        className={`fixed inset-y-0 left-0 z-30 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
+        className={`fixed inset-y-0 left-0 z-30 w-64 bg-primary-900 transform transition-transform duration-200 ease-in-out lg:translate-x-0 lg:static lg:inset-auto ${
           sidebarOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="flex items-center gap-3 px-6 h-16 border-b border-gray-200">
-          <div className="w-8 h-8 bg-primary-600 rounded-lg flex items-center justify-center">
+        <div className="flex items-center gap-3 px-6 h-16 border-b border-primary-800">
+          <div className="w-8 h-8 bg-white/20 rounded-lg flex items-center justify-center">
             <Activity className="w-5 h-5 text-white" />
           </div>
           <div>
-            <h1 className="text-lg font-bold text-gray-900">CHWS</h1>
-            <p className="text-xs text-gray-500">Dashboard v1.0</p>
+            <h1 className="text-lg font-bold text-white">CHWS</h1>
+            <p className="text-xs text-blue-300">Dashboard v1.0</p>
           </div>
         </div>
 
@@ -53,8 +56,8 @@ export default function Layout({ children }) {
                   className={({ isActive }) =>
                     `flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                       isActive
-                        ? 'bg-primary-50 text-primary-700'
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                        ? 'bg-white/15 text-white'
+                        : 'text-blue-200 hover:bg-white/10 hover:text-white'
                     }`
                   }
                 >
@@ -65,10 +68,10 @@ export default function Layout({ children }) {
           )}
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-primary-800">
           <button
             onClick={handleLogout}
-            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-100 hover:text-gray-900 transition-colors"
+            className="flex items-center gap-3 px-3 py-2.5 w-full rounded-lg text-sm font-medium text-blue-300 hover:bg-white/10 hover:text-white transition-colors"
           >
             <LogOut className="w-5 h-5" />
             Sign Out
@@ -84,16 +87,16 @@ export default function Layout({ children }) {
       )}
 
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-4 lg:px-6">
+        <header className="h-16 bg-white border-b border-blue-100 flex items-center justify-between px-4 lg:px-6">
           <button
-            className="lg:hidden p-2 rounded-md text-gray-500 hover:bg-gray-100"
+            className="lg:hidden p-2 rounded-md text-blue-600 hover:bg-blue-50"
             onClick={() => setSidebarOpen(true)}
           >
             {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
           <div className="flex items-center gap-4 ml-auto">
-            <button className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 relative">
+            <button className="p-2 rounded-lg text-blue-400 hover:text-blue-600 hover:bg-blue-50 relative">
               <Bell className="w-5 h-5" />
               <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger-500 rounded-full" />
             </button>
@@ -105,7 +108,7 @@ export default function Layout({ children }) {
                 <p className="text-sm font-medium text-gray-900">
                   {user?.firstName} {user?.lastName}
                 </p>
-                <p className="text-xs text-gray-500 capitalize">{user?.role}</p>
+                <p className="text-xs text-blue-500 capitalize">{user?.role}</p>
               </div>
             </div>
           </div>

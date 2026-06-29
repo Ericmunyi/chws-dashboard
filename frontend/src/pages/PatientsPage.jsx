@@ -1,8 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, ChevronLeft, ChevronRight, Loader2 } from 'lucide-react';
+import { Search, Plus, ChevronLeft, ChevronRight, Loader2, ArrowRight } from 'lucide-react';
+import toast from 'react-hot-toast';
 import { patientsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import AddPatientModal from '../components/AddPatientModal';
+import ReferPatientModal from '../components/ReferPatientModal';
 
 export default function PatientsPage() {
   const { hasRole } = useAuth();
@@ -12,6 +14,7 @@ export default function PatientsPage() {
   const [page, setPage] = useState(1);
   const [pagination, setPagination] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [referPatient, setReferPatient] = useState(null);
 
   const fetchPatients = useCallback(async () => {
     setLoading(true);
@@ -76,6 +79,7 @@ export default function PatientsPage() {
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">CHW</th>
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">Status</th>
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">Created</th>
+                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -99,6 +103,17 @@ export default function PatientsPage() {
                     </td>
                     <td className="px-6 py-3 text-gray-500 text-xs">
                       {new Date(p.created_at).toLocaleDateString()}
+                    </td>
+                    <td className="px-6 py-3">
+                      {hasRole('admin', 'manager', 'chw') && (
+                        <button
+                          onClick={() => setReferPatient(p)}
+                          className="btn-secondary text-xs"
+                        >
+                          <ArrowRight className="w-3 h-3 mr-1" />
+                          Refer
+                        </button>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -136,6 +151,14 @@ export default function PatientsPage() {
         <AddPatientModal
           onClose={() => setShowAddModal(false)}
           onSuccess={() => { setShowAddModal(false); fetchPatients(); }}
+        />
+      )}
+
+      {referPatient && (
+        <ReferPatientModal
+          patient={referPatient}
+          onClose={() => setReferPatient(null)}
+          onSuccess={() => { setReferPatient(null); toast.success('Referral submitted'); }}
         />
       )}
     </div>

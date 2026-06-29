@@ -7,6 +7,7 @@ export function useDashboardData() {
   const [chwActivity, setChwActivity] = useState(null);
   const [health, setHealth] = useState(null);
   const [patientStats, setPatientStats] = useState(null);
+  const [referrals, setReferrals] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
@@ -14,18 +15,20 @@ export function useDashboardData() {
     setLoading(true);
     setError(null);
     try {
-      const [s, ss, ca, h, ps] = await Promise.all([
+      const [s, ss, ca, h, ps, r] = await Promise.all([
         dashboardAPI.summary(),
-        dashboardAPI.syncStatus(),
+        dashboardAPI.syncStatus().catch(() => null),
         dashboardAPI.chwActivity(),
-        dashboardAPI.health(),
+        dashboardAPI.health().catch(() => null),
         dashboardAPI.patientStats(),
+        dashboardAPI.recentReferrals({ limit: 10 }),
       ]);
       setSummary(s);
       setSyncStatus(ss);
       setChwActivity(ca);
       setHealth(h);
       setPatientStats(ps);
+      setReferrals(r);
     } catch (err) {
       setError(err.response?.data?.message || 'Failed to load dashboard data');
     } finally {
@@ -37,5 +40,5 @@ export function useDashboardData() {
     fetchAll();
   }, [fetchAll]);
 
-  return { summary, syncStatus, chwActivity, health, patientStats, loading, error, refresh: fetchAll };
+  return { summary, syncStatus, chwActivity, health, patientStats, referrals, loading, error, refresh: fetchAll };
 }

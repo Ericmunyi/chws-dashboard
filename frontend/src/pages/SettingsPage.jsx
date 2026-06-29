@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import { Save, Server, Database, Key, Bell, RefreshCw, Loader2 } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Server, Loader2, RefreshCw, Bell, AlertCircle } from 'lucide-react';
 import toast from 'react-hot-toast';
+import api from '../services/api';
 
 export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [config, setConfig] = useState({
     syncInterval: 300000,
     batchSize: 100,
@@ -14,12 +17,76 @@ export default function SettingsPage() {
     autoSync: true,
   });
 
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const data = await api.get('/settings').then((r) => r.data);
+        if (data.sync_settings) {
+          setConfig((prev) => ({
+            ...prev,
+            syncInterval: data.sync_settings.interval_ms || prev.syncInterval,
+            batchSize: data.sync_settings.batch_size || prev.batchSize,
+            retryAttempts: data.sync_settings.retry_attempts || prev.retryAttempts,
+          }));
+        }
+        if (data.echis_connection) {
+          setConfig((prev) => ({
+            ...prev,
+            echisUrl: data.echis_connection.base_url || prev.echisUrl,
+          }));
+        }
+        if (data.openmrs_connection) {
+          setConfig((prev) => ({
+            ...prev,
+            openmrsUrl: data.openmrs_connection.base_url || prev.openmrsUrl,
+          }));
+        }
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load settings');
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchSettings();
+  }, []);
+
   const handleSave = async () => {
     setSaving(true);
-    await new Promise((r) => setTimeout(r, 1000));
-    setSaving(false);
-    toast.success('Settings saved successfully');
+    try {
+      await api.put('/settings', {
+        sync_settings: {
+          interval_ms: config.syncInterval,
+          batch_size: config.batchSize,
+          retry_attempts: config.retryAttempts,
+          retry_delay_ms: 60000,
+        },
+        echis_connection: { base_url: config.echisUrl, status: 'disconnected', last_connected: null },
+        openmrs_connection: { base_url: config.openmrsUrl, status: 'disconnected', last_connected: null },
+      });
+      toast.success('Settings saved successfully');
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to save settings');
+    } finally {
+      setSaving(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-primary-600" />
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="card p-8 text-center">
+        <AlertCircle className="w-12 h-12 text-danger-500 mx-auto mb-3" />
+        <p className="text-gray-500">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-3xl space-y-6">
@@ -42,7 +109,7 @@ export default function SettingsPage() {
               <input
                 type="number"
                 value={config.syncInterval}
-                onChange={(e) => setConfig({ ...config, syncInterval: parseInt(e.target.value) })}
+                onChange={(e) => setConfig({ ...config, syncInterval: parseInt(e.target.value) || 0 })}
                 className="input"
               />
             </div>
@@ -53,7 +120,7 @@ export default function SettingsPage() {
               <input
                 type="number"
                 value={config.batchSize}
-                onChange={(e) => setConfig({ ...config, batchSize: parseInt(e.target.value) })}
+                onChange={(e) => setConfig({ ...config, batchSize: parseInt(e.target.value) || 0 })}
                 className="input"
               />
             </div>
@@ -64,7 +131,7 @@ export default function SettingsPage() {
               <input
                 type="number"
                 value={config.retryAttempts}
-                onChange={(e) => setConfig({ ...config, retryAttempts: parseInt(e.target.value) })}
+                onChange={(e) => setConfig({ ...config, retryAttempts: parseInt(e.target.value) || 0 })}
                 className="input"
               />
             </div>
