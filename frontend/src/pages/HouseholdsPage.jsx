@@ -3,6 +3,7 @@ import { Search, Plus, ChevronLeft, ChevronRight, Loader2, X } from 'lucide-reac
 import { householdsAPI, patientsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+import { SUB_COUNTIES, WARDS, VILLAGES } from '../data/kenya-regions';
 
 export default function HouseholdsPage() {
   const { hasRole } = useAuth();
@@ -136,53 +137,7 @@ export default function HouseholdsPage() {
   );
 }
 
-const SUB_COUNTIES = {
-  'UASIN GISHU': ['Soy', 'Turbo', 'Moiben', 'Ainabkoi', 'Kapseret', 'Kesses'],
-  'BUSIA': ['Busia Township', 'Matayos', 'Butula', 'Nambale', 'Samia', 'Funyula', 'Teso North', 'Teso South'],
-  'EMBU': ['Manyatta', 'Runyenjes', 'Mbeere South', 'Mbeere North'],
-};
 
-const VILLAGES = {
-  'Soy': ['Kimuri', 'Kipsomba', 'Koibarak', 'Sosiani', 'Chebisaas'],
-  'Turbo': ['Kamagut', 'Ngenyilel', 'Sosiani', 'Tapsagoi', 'Kipsomba'],
-  'Moiben': ['Karuna', 'Kimumu', 'Moiben', 'Segero', 'Tembelio'],
-  'Ainabkoi': ['Ainabkoi', 'Kaptagat', 'Kipkabus', 'Cheplasko', 'Nerkwo'],
-  'Kapseret': ['Kapseret', 'Langas', 'Kambiusi', 'Moi\'s Bridge', 'Olare'],
-  'Kesses': ['Kesses', 'Ngeria', 'Simat', 'Chepkoilel', 'Kapyemit'],
-  'Busia Township': ['Busia Town', 'Mujengo', 'Odiado', 'Malaba', 'Kocholia'],
-  'Matayos': ['Matayos', 'Burumba', 'Kisoko', 'Mungatsi', 'Bumalimba'],
-  'Butula': ['Butula', 'Mundika', 'Bumutiru', 'Nambia', 'Buduta'],
-  'Nambale': ['Nambale', 'Nangina', 'Bukati', 'Mashitsi', 'Bwaliro'],
-  'Samia': ['Nangwe', 'Lwang\'ni', 'Bwirege', 'Budongo', 'Rwambwa'],
-  'Funyula': ['Funyula', 'Siginga', 'Bunyala', 'Port Victoria', 'Ochinga'],
-  'Teso North': ['Malaba', 'Omoding', 'Akoroi', 'Kamolo', 'Osia'],
-  'Teso South': ['Amagoro', 'Angurai', 'Chakol', 'Kocholia', 'Ojolais'],
-  'Manyatta': ['Manyatta', 'Njukiri', 'Kithimu', 'Ngandori', 'Karuari'],
-  'Runyenjes': ['Runyenjes', 'Kagaari', 'Gaturi', 'Kigumo', 'Mbeti'],
-  'Mbeere South': ['Kiritiri', 'Mwea', 'Gachoka', 'Nthawa', 'Makima'],
-  'Mbeere North': ['Siakago', 'Ishiara', 'Muminji', 'Evurore', 'Ndagoni'],
-};
-
-const WARDS = {
-  'Soy': ['Moi\'s Bridge', 'Ziwa', 'Kipsomba', 'Segero/Barsombe', 'Kapkures', 'Sosiani'],
-  'Turbo': ['Kamagut', 'Ngenyilel', 'Tapsagoi', 'Kiborgok', 'Kipsomai', 'Tuiyobei'],
-  'Moiben': ['Karuna', 'Kimumu', 'Moiben', 'Tembelio', 'Segero', 'Kaptagat'],
-  'Ainabkoi': ['Ainabkoi', 'Kaptagat', 'Kapkures', 'Cheplasko', 'Nerkwo', 'Kipkabus'],
-  'Kapseret': ['Kapseret', 'Langas', 'Kambiu', 'Moi\'s Bridge', 'Olare', 'Simat'],
-  'Kesses': ['Kesses', 'Ngeria', 'Simat', 'Chepkoilel', 'Kapyemit', 'Tarakwa'],
-  'Busia Township': ['Busia Town', 'Mujengo', 'Odiado', 'Malaba', 'Kocholia'],
-  'Matayos': ['Matayos', 'Burumba', 'Kisoko', 'Mungatsi', 'Bumalimba'],
-  'Butula': ['Butula', 'Mundika', 'Bumutiru', 'Nambia', 'Buduta'],
-  'Nambale': ['Nambale', 'Nangina', 'Bukati', 'Mashitsi', 'Bwaliro'],
-  'Samia': ['Nangwe', 'Lwang\'ni', 'Bwirege', 'Budongo', 'Rwambwa'],
-  'Funyula': ['Funyula', 'Siginga', 'Bunyala', 'Port Victoria', 'Ochinga'],
-  'Teso North': ['Malaba', 'Omoding', 'Akoroi', 'Kamolo', 'Osia'],
-  'Teso South': ['Amagoro', 'Angurai', 'Chakol', 'Kocholia', 'Ojolais'],
-  'Manyatta': ['Manyatta', 'Njukiri', 'Kithimu', 'Ngandori', 'Karuari', 'Ruguri'],
-  'Runyenjes': ['Runyenjes', 'Kagaari', 'Gaturi', 'Kigumo', 'Mbeti', 'Gitarene'],
-  'Mbeere South': ['Kiritiri', 'Mwea', 'Gachoka', 'Nthawa', 'Makima', 'Mavuria'],
-  'Mbeere North': ['Siakago', 'Ishiara', 'Muminji', 'Evurore', 'Ndagoni', 'Riandu'],
-};
 
 function AddHouseholdModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({

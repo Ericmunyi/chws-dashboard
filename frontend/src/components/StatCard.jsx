@@ -1,11 +1,12 @@
 export default function StatCard({ label, value, icon: Icon, color = 'blue', subtitle, trend }) {
   const colors = {
-    blue: 'bg-blue-50 text-blue-600',
-    green: 'bg-green-50 text-green-600',
-    yellow: 'bg-yellow-50 text-yellow-600',
-    red: 'bg-red-50 text-red-600',
-    purple: 'bg-purple-50 text-purple-600',
-    indigo: 'bg-indigo-50 text-indigo-600',
+    blue: 'bg-primary-50 text-primary-600',
+    green: 'bg-primary-50 text-primary-600',
+    yellow: 'bg-primary-50 text-primary-600',
+    red: 'bg-primary-50 text-primary-600',
+    purple: 'bg-primary-50 text-primary-600',
+    indigo: 'bg-primary-50 text-primary-600',
+    orange: 'bg-primary-50 text-primary-600',
   };
 
   return (
@@ -25,7 +26,7 @@ export default function StatCard({ label, value, icon: Icon, color = 'blue', sub
         )}
       </div>
       {trend !== undefined && (
-        <div className={`mt-3 text-xs font-medium ${trend >= 0 ? 'text-success-700' : 'text-danger-700'}`}>
+        <div className={`mt-3 text-xs font-medium text-primary-700`}>
           {trend >= 0 ? '↑' : '↓'} {Math.abs(trend)}% from last month
         </div>
       )}

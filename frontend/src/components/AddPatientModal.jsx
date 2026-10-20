@@ -2,6 +2,9 @@ import { useState } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { patientsAPI } from '../services/api';
 import toast from 'react-hot-toast';
+import { SUB_COUNTIES, WARDS, VILLAGES } from '../data/kenya-regions';
+
+const COUNTIES = Object.keys(SUB_COUNTIES);
 
 export default function AddPatientModal({ onClose, onSuccess }) {
   const [form, setForm] = useState({
@@ -11,14 +14,27 @@ export default function AddPatientModal({ onClose, onSuccess }) {
     gender: '',
     phone: '',
     nationalId: '',
+    county: '',
+    subCounty: '',
     village: '',
     ward: '',
   });
   const [loading, setLoading] = useState(false);
 
   const handleChange = (e) => {
-    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+    const { name, value } = e.target;
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+      ...(name === 'county' ? { subCounty: '', village: '', ward: '' } : {}),
+      ...(name === 'subCounty' ? { village: '', ward: '' } : {}),
+      ...(name === 'village' ? { ward: '' } : {}),
+    }));
   };
+
+  const subCounties = form.county ? SUB_COUNTIES[form.county] : [];
+  const villages = form.subCounty ? VILLAGES[form.subCounty] : [];
+  const wards = form.subCounty ? WARDS[form.subCounty] : [];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -97,12 +113,35 @@ export default function AddPatientModal({ onClose, onSuccess }) {
 
           <div className="grid grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">County</label>
+              <select name="county" value={form.county} onChange={handleChange} className="input">
+                <option value="">Select County</option>
+                {COUNTIES.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Sub-County</label>
+              <select name="subCounty" value={form.subCounty} onChange={handleChange} className="input" disabled={!form.county}>
+                <option value="">Select Sub-County</option>
+                {subCounties.map((s) => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Village</label>
-              <input type="text" name="village" value={form.village} onChange={handleChange} className="input" placeholder="Village name" />
+              <select name="village" value={form.village} onChange={handleChange} className="input" disabled={!form.subCounty}>
+                <option value="">Select Village</option>
+                {villages.map((v) => <option key={v} value={v}>{v}</option>)}
+              </select>
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Ward</label>
-              <input type="text" name="ward" value={form.ward} onChange={handleChange} className="input" placeholder="Ward name" />
+              <select name="ward" value={form.ward} onChange={handleChange} className="input" disabled={!form.subCounty}>
+                <option value="">Select Ward</option>
+                {wards.map((w) => <option key={w} value={w}>{w}</option>)}
+              </select>
             </div>
           </div>
 

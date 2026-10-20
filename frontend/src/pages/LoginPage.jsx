@@ -38,7 +38,7 @@ export default function LoginPage() {
             <Activity className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-3xl font-bold text-white">CHWS Dashboard</h1>
-          <p className="text-blue-100 mt-2">
+          <p className="text-primary-100 mt-2">
             Community Health Worker System — eCHIS & OpenMRS
           </p>
         </div>
@@ -108,7 +108,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <p className="text-center text-primary-200 text-xs mt-6">
+        <p className="text-center text-primary-100 text-xs mt-6">
           Community Health Worker Dashboard v1.0 — Ministry of Health
         </p>
       </div>

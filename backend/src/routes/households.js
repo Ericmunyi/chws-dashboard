@@ -30,8 +30,7 @@ router.get(
         query = query.where(function () {
           this.where('households.head_name', 'like', `%${search}%`)
             .orWhere('households.head_phone', 'like', `%${search}%`)
-            .orWhere('households.village', 'like', `%${search}%`)
-            .orWhere('households.hamlet', 'like', `%${search}%`);
+            .orWhere('households.village', 'like', `%${search}%`);
         });
       }
       if (status) query = query.where('households.status', status);
@@ -103,8 +102,6 @@ router.post(
           ward: req.body.ward,
           sub_county: req.body.subCounty,
           county: req.body.county,
-          hamlet: req.body.hamlet,
-          landmark: req.body.landmark,
           latitude: req.body.latitude,
           longitude: req.body.longitude,
           member_count: req.body.memberCount || 0,
@@ -133,8 +130,6 @@ router.put('/:id', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER,
         ward: req.body.ward,
         sub_county: req.body.subCounty,
         county: req.body.county,
-        hamlet: req.body.hamlet,
-        landmark: req.body.landmark,
         latitude: req.body.latitude,
         longitude: req.body.longitude,
         member_count: req.body.memberCount,

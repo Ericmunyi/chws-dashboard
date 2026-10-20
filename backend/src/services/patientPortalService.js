@@ -4,6 +4,7 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../models');
 const logger = require('../config/logger');
+const darajaService = require('./darajaService');
 
 const OTP_EXPIRY_MINUTES = 5;
 const PORTAL_TOKEN_EXPIRY = '30m';
@@ -25,11 +26,17 @@ const patientPortalService = {
       expires_at: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
     });
 
-    logger.info(`OTP for ${phone}: ${otp}`);
+    const message = `Your CHW Dashboard OTP is ${otp}. Valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share this code.`;
+
+    const sent = await darajaService.sendSms(phone, message);
+
+    if (!sent && process.env.NODE_ENV !== 'production') {
+      logger.info(`OTP for ${phone}: ${otp}`);
+    }
 
     return {
       exists: true,
-      message: 'OTP sent successfully',
+      message: sent ? 'OTP sent successfully' : 'OTP generated but SMS delivery unavailable',
     };
   },
 

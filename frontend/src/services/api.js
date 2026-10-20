@@ -147,6 +147,7 @@ export const householdsAPI = {
 export const referralsAPI = {
   list: (params) => api.get('/referrals', { params }).then((r) => r.data),
   create: (data) => api.post('/referrals', data).then((r) => r.data),
+  facilities: (params) => api.get('/referrals/facilities', { params }).then((r) => r.data),
 };
 
 export const syncAPI = {
@@ -160,6 +161,39 @@ export const paymentsAPI = {
   summary: () => api.get('/payments/summary').then((r) => r.data),
   list: (params) => api.get('/payments', { params }).then((r) => r.data),
   create: (data) => api.post('/payments', data).then((r) => r.data),
+};
+
+export const appointmentsAPI = {
+  list: (params) => api.get('/appointments', { params }).then((r) => r.data),
+  get: (id) => api.get(`/appointments/${id}`).then((r) => r.data),
+  create: (data) => api.post('/appointments', data).then((r) => r.data),
+  update: (id, data) => api.put(`/appointments/${id}`, data).then((r) => r.data),
+  availableSlots: (params) =>
+    api.get('/appointments/available-slots', { params }).then((r) => r.data),
+};
+
+export const medicalRecordsAPI = {
+  list: (params) => api.get('/medical-records', { params }).then((r) => r.data),
+  get: (id) => api.get(`/medical-records/${id}`).then((r) => r.data),
+  create: (data) => api.post('/medical-records', data).then((r) => r.data),
+  update: (id, data) => api.put(`/medical-records/${id}`, data).then((r) => r.data),
+};
+
+export const departmentsAPI = {
+  list: (params) => api.get('/departments', { params }).then((r) => r.data),
+  get: (id) => api.get(`/departments/${id}`).then((r) => r.data),
+  create: (data) => api.post('/departments', data).then((r) => r.data),
+  update: (id, data) => api.put(`/departments/${id}`, data).then((r) => r.data),
+};
+
+export const queueAPI = {
+  list: (params) => api.get('/queue', { params }).then((r) => r.data),
+  get: (id) => api.get(`/queue/${id}`).then((r) => r.data),
+  summary: (params) => api.get('/queue/summary', { params }).then((r) => r.data),
+  enqueue: (data) => api.post('/queue', data).then((r) => r.data),
+  callNext: (data) => api.post('/queue/call-next', data).then((r) => r.data),
+  update: (id, data) => api.put(`/queue/${id}`, data).then((r) => r.data),
+  remove: (id) => api.delete(`/queue/${id}`).then((r) => r.data),
 };
 
 export default api;

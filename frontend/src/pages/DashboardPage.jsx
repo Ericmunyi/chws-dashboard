@@ -65,49 +65,49 @@ export default function DashboardPage() {
       label: 'Active Households',
       value: summary?.totalHouseholds?.toLocaleString(),
       icon: Home,
-      color: 'green',
+      color: 'blue',
     },
     {
       label: 'Active CHWs',
       value: summary?.totalCHWs?.toLocaleString(),
       icon: UserCheck,
-      color: 'purple',
+      color: 'blue',
     },
     {
       label: 'Encounters',
       value: summary?.totalEncounters?.toLocaleString(),
       icon: Stethoscope,
-      color: 'indigo',
+      color: 'blue',
     },
     {
       label: 'Referrals',
       value: summary?.totalReferrals?.toLocaleString(),
       icon: Ambulance,
-      color: 'orange',
+      color: 'blue',
     },
     {
       label: 'Sync Success Rate',
       value: summary ? `${summary.syncSuccessRate}%` : '\u2014',
       icon: Activity,
-      color: summary?.syncSuccessRate >= 80 ? 'green' : 'yellow',
+      color: 'blue',
     },
     {
       label: 'Pending Syncs',
       value: summary?.pendingSyncs?.toLocaleString(),
       icon: Clock,
-      color: summary?.pendingSyncs > 0 ? 'yellow' : 'green',
+      color: 'blue',
     },
     {
       label: 'Failed Syncs',
       value: summary?.failedSyncs?.toLocaleString(),
       icon: AlertTriangle,
-      color: summary?.failedSyncs > 0 ? 'red' : 'green',
+      color: 'blue',
     },
     {
       label: 'Visits This Month',
       value: summary?.activeVisitsThisMonth?.toLocaleString(),
       icon: CalendarCheck,
-      color: 'green',
+      color: 'blue',
     },
   ];
 
@@ -120,7 +120,7 @@ export default function DashboardPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold text-primary-800">Dashboard</h1>
-          <p className="text-blue-500 text-sm mt-1">
+          <p className="text-primary-500 text-sm mt-1">
             CHWS Integration Overview \u2014 eCHIS & OpenMRS
           </p>
         </div>
@@ -141,22 +141,22 @@ export default function DashboardPage() {
           <h3 className="text-sm font-bold text-primary-700 mb-3">Patient Demographics</h3>
           <div className="flex items-center gap-6">
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-600">
+              <p className="text-2xl font-bold text-primary-600">
                 {femalePatients ? parseInt(femalePatients.count) : 0}
               </p>
-              <p className="text-xs text-blue-500">Female</p>
+              <p className="text-xs text-primary-500">Female</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold text-blue-700">
+              <p className="text-2xl font-bold text-primary-700">
                 {malePatients ? parseInt(malePatients.count) : 0}
               </p>
-              <p className="text-xs text-blue-500">Male</p>
+              <p className="text-xs text-primary-500">Male</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-primary-800">
                 {patientStats?.total || 0}
               </p>
-              <p className="text-xs text-blue-500">Total</p>
+              <p className="text-xs text-primary-500">Total</p>
             </div>
           </div>
         </div>
@@ -165,9 +165,9 @@ export default function DashboardPage() {
           <h3 className="text-sm font-bold text-primary-700 mb-3">Age Distribution</h3>
           <div className="grid grid-cols-3 gap-2">
             {(patientStats?.byAgeGroup || []).map((group) => (
-              <div key={group.age_group} className="text-center p-2 bg-blue-50 rounded-lg">
+              <div key={group.age_group} className="text-center p-2 bg-primary-50 rounded-lg">
                 <p className="text-lg font-bold text-primary-800">{parseInt(group.count)}</p>
-                <p className="text-xs text-blue-500 capitalize">
+                <p className="text-xs text-primary-500 capitalize">
                   {group.age_group.replace(/_/g, ' ')}
                 </p>
               </div>
@@ -192,12 +192,12 @@ export default function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-blue-100 bg-blue-50">
-                  <th className="text-left px-4 py-2 text-blue-700 font-medium">Patient</th>
-                  <th className="text-left px-4 py-2 text-blue-700 font-medium">Referred To</th>
-                  <th className="text-left px-4 py-2 text-blue-700 font-medium">Reason</th>
-                  <th className="text-left px-4 py-2 text-blue-700 font-medium">CHW</th>
-                  <th className="text-left px-4 py-2 text-blue-700 font-medium">Date</th>
+                <tr className="border-b border-primary-100 bg-primary-50">
+                  <th className="text-left px-4 py-2 text-primary-700 font-medium">Patient</th>
+                  <th className="text-left px-4 py-2 text-primary-700 font-medium">Referred To</th>
+                  <th className="text-left px-4 py-2 text-primary-700 font-medium">Reason</th>
+                  <th className="text-left px-4 py-2 text-primary-700 font-medium">CHW</th>
+                  <th className="text-left px-4 py-2 text-primary-700 font-medium">Date</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,7 +221,7 @@ export default function DashboardPage() {
       <div className="card p-6">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-lg font-bold text-primary-700">Patient Portal</h3>
-          <span className="text-xs bg-primary-100 text-primary-700 px-2 py-1 rounded-full font-medium">New</span>
+          <span className="text-xs bg-primary-100 text-primary-500 px-2 py-1 rounded-full font-medium">New</span>
         </div>
         <p className="text-sm text-gray-500 mb-4">
           Patients can securely access their health records via phone OTP authentication.
@@ -247,7 +247,7 @@ export default function DashboardPage() {
             </div>
           </div>
           <div className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-            <CheckCircle className="w-5 h-5 text-green-500" />
+            <CheckCircle className="w-5 h-5 text-primary-500" />
             <div>
               <p className="text-sm font-medium text-gray-700">OTP Auth</p>
               <p className="text-xs text-gray-400">6-digit code, 5 min expiry</p>
@@ -280,6 +280,7 @@ function ReferralModal({ onClose, onSuccess }) {
     patientSearch: '',
     reason: '',
     referredTo: '',
+    referredToCustom: '',
     location: '',
     notes: '',
   });
@@ -287,6 +288,25 @@ function ReferralModal({ onClose, onSuccess }) {
   const [searching, setSearching] = useState(false);
   const [loading, setLoading] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState(null);
+  const [facilities, setFacilities] = useState([]);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(true);
+  const [useCustomFacility, setUseCustomFacility] = useState(false);
+
+  useEffect(() => {
+    loadFacilities();
+  }, []);
+
+  const loadFacilities = async () => {
+    setFacilitiesLoading(true);
+    try {
+      const data = await referralsAPI.facilities();
+      setFacilities(data.data || []);
+    } catch {
+      setFacilities([]);
+    } finally {
+      setFacilitiesLoading(false);
+    }
+  };
 
   const searchPatients = async (q) => {
     if (!q || q.length < 2) return;
@@ -300,6 +320,11 @@ function ReferralModal({ onClose, onSuccess }) {
     }
   };
 
+  const getReferredToValue = () => {
+    if (useCustomFacility) return form.referredToCustom;
+    return form.referredTo;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedPatient) {
@@ -310,8 +335,9 @@ function ReferralModal({ onClose, onSuccess }) {
       toast.error('Please enter a reason for referral');
       return;
     }
-    if (!form.referredTo.trim()) {
-      toast.error('Please enter the facility to refer to');
+    const referredTo = getReferredToValue();
+    if (!referredTo) {
+      toast.error('Please select or enter a referral facility');
       return;
     }
     setLoading(true);
@@ -319,7 +345,7 @@ function ReferralModal({ onClose, onSuccess }) {
       await referralsAPI.create({
         patientId: selectedPatient.id,
         reason: form.reason,
-        referredTo: form.referredTo,
+        referredTo,
         location: form.location,
         notes: form.notes,
       });
@@ -331,6 +357,12 @@ function ReferralModal({ onClose, onSuccess }) {
       setLoading(false);
     }
   };
+
+  const groupedFacilities = facilities.reduce((acc, f) => {
+    if (!acc[f.county]) acc[f.county] = [];
+    acc[f.county].push(f);
+    return acc;
+  }, {});
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -347,10 +379,10 @@ function ReferralModal({ onClose, onSuccess }) {
             <label className="block text-sm font-medium text-gray-700 mb-1">Patient *</label>
             {selectedPatient ? (
               <div className="flex items-center justify-between bg-blue-50 rounded-lg px-3 py-2">
-                <span className="text-sm font-medium text-blue-800">
+                <span                 className="text-sm font-medium text-primary-800">
                   {selectedPatient.first_name} {selectedPatient.last_name}
                 </span>
-                <button type="button" onClick={() => { setSelectedPatient(null); setPatients([]); }} className="text-blue-600 hover:text-blue-800 text-xs font-medium">
+                <button type="button" onClick={() => { setSelectedPatient(null); setPatients([]); }} className="text-primary-600 hover:text-primary-800 text-xs font-medium">
                   Change
                 </button>
               </div>
@@ -385,13 +417,50 @@ function ReferralModal({ onClose, onSuccess }) {
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Referred To (Facility) *</label>
-            <input type="text" name="referredTo" value={form.referredTo} onChange={(e) => setForm((p) => ({ ...p, referredTo: e.target.value }))} className="input" placeholder="e.g. Kisumu County Hospital" />
+            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Referral *</label>
+            <textarea name="reason" value={form.reason} onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))} className="input" rows="2" placeholder="Describe the reason..." />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Reason for Referral *</label>
-            <textarea name="reason" value={form.reason} onChange={(e) => setForm((p) => ({ ...p, reason: e.target.value }))} className="input" rows="2" placeholder="Describe the reason..." />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Referred To *</label>
+              <button
+                type="button"
+                onClick={() => setUseCustomFacility(!useCustomFacility)}
+                className="text-xs text-primary-600 hover:text-primary-800"
+              >
+                {useCustomFacility ? 'Pick from list' : 'Custom facility'}
+              </button>
+            </div>
+            {useCustomFacility ? (
+              <input
+                type="text"
+                value={form.referredToCustom}
+                onChange={(e) => setForm((p) => ({ ...p, referredToCustom: e.target.value }))}
+                className="input"
+                placeholder="e.g. Kisumu County Referral Hospital"
+              />
+            ) : (
+              <select
+                value={form.referredTo}
+                onChange={(e) => setForm((p) => ({ ...p, referredTo: e.target.value }))}
+                className="input"
+                disabled={facilitiesLoading}
+              >
+                <option value="">
+                  {facilitiesLoading ? 'Loading facilities...' : 'Select a facility...'}
+                </option>
+                {Object.keys(groupedFacilities).map((county) => (
+                  <optgroup key={county} label={county}>
+                    {groupedFacilities[county].map((f) => (
+                      <option key={f.id} value={f.name}>
+                        {f.name} ({f.type})
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>

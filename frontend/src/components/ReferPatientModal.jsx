@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { X, Loader2 } from 'lucide-react';
 import { referralsAPI, patientsAPI } from '../services/api';
 import toast from 'react-hot-toast';
@@ -8,6 +8,7 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
   const [form, setForm] = useState({
     reason: '',
     referredTo: '',
+    referredToCustom: '',
     location: '',
     notes: '',
   });
@@ -15,6 +16,25 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
   const [searching, setSearching] = useState(false);
   const [patientSearch, setPatientSearch] = useState('');
   const [loading, setLoading] = useState(false);
+  const [facilities, setFacilities] = useState([]);
+  const [facilitiesLoading, setFacilitiesLoading] = useState(true);
+  const [useCustomFacility, setUseCustomFacility] = useState(false);
+
+  useEffect(() => {
+    loadFacilities();
+  }, []);
+
+  const loadFacilities = async () => {
+    setFacilitiesLoading(true);
+    try {
+      const data = await referralsAPI.facilities();
+      setFacilities(data.data || []);
+    } catch {
+      setFacilities([]);
+    } finally {
+      setFacilitiesLoading(false);
+    }
+  };
 
   const handleChange = (e) => {
     setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
@@ -31,6 +51,11 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
     }
   };
 
+  const getReferredToValue = () => {
+    if (useCustomFacility) return form.referredToCustom;
+    return form.referredTo;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!selectedPatient) {
@@ -41,8 +66,9 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
       toast.error('Please select a reason for referral');
       return;
     }
-    if (!form.referredTo) {
-      toast.error('Please enter the referral destination');
+    const referredTo = getReferredToValue();
+    if (!referredTo) {
+      toast.error('Please select or enter a referral facility');
       return;
     }
     setLoading(true);
@@ -50,7 +76,7 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
       await referralsAPI.create({
         patientId: selectedPatient.id,
         reason: form.reason,
-        referredTo: form.referredTo,
+        referredTo,
         location: form.location,
         notes: form.notes,
       });
@@ -62,6 +88,12 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
       setLoading(false);
     }
   };
+
+  const groupedFacilities = facilities.reduce((acc, f) => {
+    if (!acc[f.county]) acc[f.county] = [];
+    acc[f.county].push(f);
+    return acc;
+  }, {});
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
@@ -131,24 +163,57 @@ export default function ReferPatientModal({ patient, onClose, onSuccess }) {
               <option value="child_health">Child Health / Immunization</option>
               <option value="mental_health">Mental Health</option>
               <option value="chronic_disease">Chronic Disease Management</option>
+              <option value="dental_treatment">Dental Treatment</option>
               <option value="other">Other</option>
             </select>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Referred To *</label>
-            <input
-              type="text"
-              name="referredTo"
-              value={form.referredTo}
-              onChange={handleChange}
-              className="input"
-              placeholder="e.g. Kisumu County Referral Hospital"
-            />
+            <div className="flex items-center justify-between mb-1">
+              <label className="block text-sm font-medium text-gray-700">Referred To *</label>
+              <button
+                type="button"
+                onClick={() => setUseCustomFacility(!useCustomFacility)}
+                className="text-xs text-primary-600 hover:text-primary-800"
+              >
+                {useCustomFacility ? 'Pick from list' : 'Custom facility'}
+              </button>
+            </div>
+            {useCustomFacility ? (
+              <input
+                type="text"
+                name="referredToCustom"
+                value={form.referredToCustom}
+                onChange={handleChange}
+                className="input"
+                placeholder="e.g. Kisumu County Referral Hospital"
+              />
+            ) : (
+              <select
+                name="referredTo"
+                value={form.referredTo}
+                onChange={handleChange}
+                className="input"
+                disabled={facilitiesLoading}
+              >
+                <option value="">
+                  {facilitiesLoading ? 'Loading facilities...' : 'Select a facility...'}
+                </option>
+                {Object.keys(groupedFacilities).map((county) => (
+                  <optgroup key={county} label={county}>
+                    {groupedFacilities[county].map((f) => (
+                      <option key={f.id} value={f.name}>
+                        {f.name} ({f.type})
+                      </option>
+                    ))}
+                  </optgroup>
+                ))}
+              </select>
+            )}
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Location</label>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Patient Location</label>
             <input
               type="text"
               name="location"

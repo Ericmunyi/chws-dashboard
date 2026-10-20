@@ -19,6 +19,7 @@ const authenticate = (req, res, next) => {
       username: decoded.username,
       role: decoded.role,
       email: decoded.email,
+      facility_id: decoded.facility_id,
     };
     next();
   } catch (err) {

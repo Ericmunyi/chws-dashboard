@@ -22,6 +22,10 @@ const db = {
   refreshTokens: () => knex('refresh_tokens'),
   systemConfig: () => knex('system_config'),
   payments: () => knex('payments'),
+  referral_facilities: () => knex('referral_facilities'),
+  appointments: () => knex('appointments'),
+  departments: () => knex('departments'),
+  departmentQueue: () => knex('department_queue'),
   knex,
 };
 

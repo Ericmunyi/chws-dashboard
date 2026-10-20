@@ -1,4 +1,4 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 
 const express = require('express');
 const http = require('http');
@@ -24,6 +24,10 @@ const householdRoutes = require('./routes/households');
 const referralRoutes = require('./routes/referrals');
 const paymentRoutes = require('./routes/payments');
 const patientPortalRoutes = require('./routes/patientPortal');
+const appointmentRoutes = require('./routes/appointments');
+const encounterRoutes = require('./routes/encounters');
+const departmentRoutes = require('./routes/departments');
+const queueRoutes = require('./routes/queue');
 const syncService = require('./services/syncService');
 
 const app = express();
@@ -59,6 +63,11 @@ app.use('/api/households', householdRoutes);
 app.use('/api/referrals', referralRoutes);
 app.use('/api/payments', paymentRoutes);
 app.use('/api/patient-portal', patientPortalRoutes);
+app.use('/api/appointments', appointmentRoutes);
+app.use('/api/medical-records', encounterRoutes);
+app.use('/api/encounters', encounterRoutes);
+app.use('/api/departments', departmentRoutes);
+app.use('/api/queue', queueRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({
@@ -110,7 +119,7 @@ async function seedIfEmpty() {
     const userCount = await db.users().count('id as count').first();
     if (userCount.count > 0) return;
 
-    logger.info('No users found — seeding initial data...');
+    logger.info('No users found â€” seeding initial data...');
     const hash = await bcrypt.hash('Password123!', 12);
 
     const users = [

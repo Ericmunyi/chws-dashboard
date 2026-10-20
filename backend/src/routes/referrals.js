@@ -55,6 +55,23 @@ router.get(
   }
 );
 
+router.get(
+  '/facilities',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER, USER_ROLES.CHW, USER_ROLES.VIEWER),
+  async (req, res, next) => {
+    try {
+      const { county } = req.query;
+      let query = db.referral_facilities().where('is_active', true).orderBy('name');
+      if (county) query = query.where('county', county);
+      const facilities = await query;
+      res.json({ data: facilities });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.post(
   '/',
   authenticate,

@@ -7,7 +7,7 @@ const logger = require('../config/logger');
 
 const generateTokens = (user) => {
   const accessToken = jwt.sign(
-    { id: user.id, username: user.username, role: user.role, email: user.email },
+    { id: user.id, username: user.username, role: user.role, email: user.email, facility_id: user.facility_id },
     process.env.JWT_SECRET,
     { expiresIn: process.env.JWT_EXPIRES_IN || '24h' }
   );
@@ -68,6 +68,7 @@ const authService = {
         lastName: user.last_name,
         role: user.role,
         phone: user.phone,
+        facilityId: user.facility_id,
       },
       ...tokens,
     };
@@ -110,6 +111,7 @@ const authService = {
         firstName: user.first_name,
         lastName: user.last_name,
         role: user.role,
+        facilityId: user.facility_id,
       },
       ...tokens,
     };
@@ -142,6 +144,7 @@ const authService = {
       lastName: user.last_name,
       role: user.role,
       phone: user.phone,
+      facilityId: user.facility_id,
       isActive: user.is_active,
       lastLoginAt: user.last_login_at,
       createdAt: user.created_at,
@@ -151,7 +154,7 @@ const authService = {
   async listUsers(filters = {}) {
     let query = db.users().select(
       'id', 'username', 'email', 'first_name', 'last_name',
-      'role', 'phone', 'is_active', 'last_login_at', 'created_at'
+      'role', 'phone', 'is_active', 'last_login_at', 'created_at', 'facility_id'
     );
 
     if (filters.role) query = query.where({ role: filters.role });
@@ -191,6 +194,7 @@ const authService = {
         last_name: userData.lastName,
         role: userData.role || 'chw',
         phone: userData.phone,
+        facility_id: userData.facilityId || null,
         is_active: true,
       });
 
