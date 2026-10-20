@@ -1,102 +1,28 @@
 ﻿require('dotenv').config();
 
-const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
-const helmet = require('helmet');
-const compression = require('compression');
-const morgan = require('morgan');
-const rateLimit = require('express-rate-limit');
-
-const { db, knex } = require('./models');
-const { errorHandler, notFoundHandler } = require('./middleware/errorHandler');
-const logger = require('./config/logger');
 const bcrypt = require('bcryptjs');
 const { v4: uuidv4 } = require('uuid');
 
-const authRoutes = require('./routes/auth');
-const dashboardRoutes = require('./routes/dashboard');
-const patientRoutes = require('./routes/patients');
-const syncRoutes = require('./routes/sync');
-const settingsRoutes = require('./routes/settings');
-const householdRoutes = require('./routes/households');
-const referralRoutes = require('./routes/referrals');
-const paymentRoutes = require('./routes/payments');
-const patientPortalRoutes = require('./routes/patientPortal');
-const appointmentRoutes = require('./routes/appointments');
-const encounterRoutes = require('./routes/encounters');
-const departmentRoutes = require('./routes/departments');
-const queueRoutes = require('./routes/queue');
+const { app } = require('./app');
+const { db, knex } = require('./models');
+const logger = require('./config/logger');
 const syncService = require('./services/syncService');
 
-const app = express();
 const server = http.createServer(app);
 
 const io = new Server(server, {
   cors: { origin: process.env.FRONTEND_URL || '*', methods: ['GET', 'POST'] },
 });
 
-app.set('db', db);
 app.set('io', io);
-
-app.use(helmet({ contentSecurityPolicy: false }));
-app.use(compression());
-app.use(cors({ origin: process.env.FRONTEND_URL || '*', credentials: true }));
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
-app.use(morgan('combined', { stream: { write: (msg) => logger.http(msg.trim()) } }));
-
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 500,
-  message: { error: 'Too many requests', message: 'Please try again later' },
-});
-app.use('/api/', limiter);
-
-app.use('/api/auth', authRoutes);
-app.use('/api/dashboard', dashboardRoutes);
-app.use('/api/patients', patientRoutes);
-app.use('/api/sync', syncRoutes);
-app.use('/api/settings', settingsRoutes);
-app.use('/api/households', householdRoutes);
-app.use('/api/referrals', referralRoutes);
-app.use('/api/payments', paymentRoutes);
-app.use('/api/patient-portal', patientPortalRoutes);
-app.use('/api/appointments', appointmentRoutes);
-app.use('/api/medical-records', encounterRoutes);
-app.use('/api/encounters', encounterRoutes);
-app.use('/api/departments', departmentRoutes);
-app.use('/api/queue', queueRoutes);
-
-app.get('/api/health', (req, res) => {
-  res.json({
-    status: 'healthy',
-    timestamp: new Date().toISOString(),
-    uptime: process.uptime(),
-    version: '1.0.0',
-  });
-});
 
 io.on('connection', (socket) => {
   logger.info(`Client connected: ${socket.id}`);
   socket.on('join:dashboard', () => socket.join('dashboard'));
   socket.on('disconnect', () => logger.info(`Client disconnected: ${socket.id}`));
 });
-
-const path = require('path');
-const frontendDist = path.resolve(__dirname, '../../frontend/dist');
-const fs = require('fs');
-if (process.env.NODE_ENV === 'production' && fs.existsSync(frontendDist)) {
-  app.use(express.static(frontendDist));
-  app.get('*', (req, res, next) => {
-    if (req.path.startsWith('/api/') || req.path.startsWith('/socket.io/')) return next();
-    res.sendFile(path.join(frontendDist, 'index.html'));
-  });
-}
-
-app.use(errorHandler);
-app.use(notFoundHandler);
 
 const PORT = process.env.PORT || 5000;
 let syncInterval;
@@ -119,7 +45,7 @@ async function seedIfEmpty() {
     const userCount = await db.users().count('id as count').first();
     if (userCount.count > 0) return;
 
-    logger.info('No users found â€” seeding initial data...');
+    logger.info('No users found — seeding initial data...');
     const hash = await bcrypt.hash('Password123!', 12);
 
     const users = [

@@ -8,6 +8,7 @@
     "dev": "nodemon src/index.js",
     "migrate": "knex migrate:latest --knexfile src/config/knexfile.js",
     "seed": "knex seed:run --knexfile src/config/knexfile.js",
+    "db:init": "node scripts/init-db.js",
     "test": "jest --coverage"
   },
   "dependencies": {
