@@ -8,7 +8,12 @@ export function SocketProvider({ children }) {
   const [lastSyncUpdate, setLastSyncUpdate] = useState(null);
 
   useEffect(() => {
-    const s = io('/', { transports: ['websocket', 'polling'] });
+    const s = io(
+      import.meta.env.VITE_API_URL
+        ? String(import.meta.env.VITE_API_URL).replace(/\/+$/, '')
+        : '/',
+      { transports: ['websocket', 'polling'] }
+    );
     s.on('connect', () => {
       s.emit('join:dashboard');
     });

@@ -123,10 +123,10 @@ async function seedIfEmpty() {
     const hash = await bcrypt.hash('Password123!', 12);
 
     const users = [
-      { id: uuidv4(), username: 'admin', email: 'admin@chws.gov', password_hash: hash, first_name: 'System', last_name: 'Admin', role: 'admin', phone: '+254700100001', is_active: 1 },
-      { id: uuidv4(), username: 'manager', email: 'manager@chws.gov', password_hash: hash, first_name: 'Jane', last_name: 'Wanjiku', role: 'manager', phone: '+254700100002', is_active: 1 },
-      { id: uuidv4(), username: 'chw1', email: 'chw1@chws.gov', password_hash: hash, first_name: 'John', last_name: 'Kamau', role: 'chw', phone: '+254700100003', is_active: 1 },
-      { id: uuidv4(), username: 'chw2', email: 'chw2@chws.gov', password_hash: hash, first_name: 'Mary', last_name: 'Achieng', role: 'chw', phone: '+254700100004', is_active: 1 },
+      { id: uuidv4(), username: 'admin', email: 'admin@chws.gov', password_hash: hash, first_name: 'System', last_name: 'Admin', role: 'admin', phone: '+254700100001', is_active: true },
+      { id: uuidv4(), username: 'manager', email: 'manager@chws.gov', password_hash: hash, first_name: 'Jane', last_name: 'Wanjiku', role: 'manager', phone: '+254700100002', is_active: true },
+      { id: uuidv4(), username: 'chw1', email: 'chw1@chws.gov', password_hash: hash, first_name: 'John', last_name: 'Kamau', role: 'chw', phone: '+254700100003', is_active: true },
+      { id: uuidv4(), username: 'chw2', email: 'chw2@chws.gov', password_hash: hash, first_name: 'Mary', last_name: 'Achieng', role: 'chw', phone: '+254700100004', is_active: true },
     ];
 
     for (const u of users) {
@@ -140,6 +140,9 @@ async function seedIfEmpty() {
 }
 
 server.listen(PORT, async () => {
+  if ((process.env.NODE_ENV || 'development') === 'production' && !process.env.DATABASE_URL) {
+    logger.warn('DATABASE_URL not set — falling back to local SQLite database');
+  }
   await runMigrations();
   await seedIfEmpty();
   logger.info(`CHWS Dashboard API running on port ${PORT}`);

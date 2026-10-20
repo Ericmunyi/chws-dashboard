@@ -12,7 +12,7 @@ const dashboardService = {
     ] = await Promise.all([
       db.patients().where({ status: 'active', ...chwFilter }).count('id as count').first(),
       db.households().where({ status: 'active', ...(isChw ? { assigned_chw_id: user.id } : {}) }).count('id as count').first(),
-      db.users().where({ role: 'chw', is_active: 1 }).count('id as count').first(),
+      db.users().where({ role: 'chw', is_active: true }).count('id as count').first(),
       db.encounters().count('id as count').first(),
       db.syncLog().where({ status: 'pending' }).count('id as count').first(),
       db.syncLog().where({ status: 'failed' }).count('id as count').first(),
