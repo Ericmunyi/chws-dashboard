@@ -98,6 +98,9 @@ router.post(
   ],
   async (req, res, next) => {
     try {
+      const nationalId = (req.body.nationalId || '').trim() || null;
+      const phone = (req.body.phone || '').trim() || null;
+
       const [patient] = await db.patients()
         .insert({
           id: uuidv4(),
@@ -106,8 +109,8 @@ router.post(
           middle_name: req.body.middleName,
           date_of_birth: req.body.dateOfBirth,
           gender: req.body.gender,
-          phone: req.body.phone,
-          national_id: req.body.nationalId,
+          phone,
+          national_id: nationalId,
           village: req.body.village,
           ward: req.body.ward,
           sub_county: req.body.subCounty,
