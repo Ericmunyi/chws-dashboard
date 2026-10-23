@@ -3,7 +3,7 @@ const fs = require('fs');
 const knexConfig = require('../config/knexfile');
 
 const dataDir = path.resolve(__dirname, '../../data');
-if (!fs.existsSync(dataDir)) {
+if (!process.env.DATABASE_URL && !fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 

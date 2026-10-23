@@ -3,8 +3,13 @@ const path = require('path');
 const fs = require('fs');
 
 const logDir = path.resolve(__dirname, '../../logs');
-if (!fs.existsSync(logDir)) {
-  fs.mkdirSync(logDir, { recursive: true });
+let fileLogging = true;
+try {
+  if (!fs.existsSync(logDir)) {
+    fs.mkdirSync(logDir, { recursive: true });
+  }
+} catch (err) {
+  fileLogging = false;
 }
 
 const levels = {
@@ -21,11 +26,10 @@ const format = winston.format.combine(
   winston.format.json()
 );
 
-const logger = winston.createLogger({
-  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
-  levels,
-  format,
-  transports: [
+const transports = [];
+
+if (fileLogging) {
+  transports.push(
     new winston.transports.File({
       filename: path.join(logDir, 'error.log'),
       level: 'error',
@@ -36,24 +40,29 @@ const logger = winston.createLogger({
       filename: path.join(logDir, 'combined.log'),
       maxsize: 5242880,
       maxFiles: 10,
-    }),
-  ],
-});
-
-if (process.env.NODE_ENV !== 'production') {
-  logger.add(
-    new winston.transports.Console({
-      format: winston.format.combine(
-        winston.format.colorize(),
-        winston.format.printf(({ timestamp, level, message, ...meta }) => {
-          const metaStr = Object.keys(meta).length
-            ? JSON.stringify(meta, null, 2)
-            : '';
-          return `${timestamp} ${level}: ${message} ${metaStr}`;
-        })
-      ),
     })
   );
 }
+
+transports.push(
+  new winston.transports.Console({
+    format: winston.format.combine(
+      ...(process.env.NODE_ENV === 'production' ? [] : [winston.format.colorize()]),
+      winston.format.printf(({ timestamp, level, message, ...meta }) => {
+        const metaStr = Object.keys(meta).length
+          ? JSON.stringify(meta, null, 2)
+          : '';
+        return `${timestamp} ${level}: ${message} ${metaStr}`;
+      })
+    ),
+  })
+);
+
+const logger = winston.createLogger({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  levels,
+  format,
+  transports,
+});
 
 module.exports = logger;
