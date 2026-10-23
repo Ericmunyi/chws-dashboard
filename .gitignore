@@ -1,5 +1,8 @@
 node_modules/
 dist/
-data/
+/data/
+/backend/data/
 .env
 *.log
+
+.vercel
