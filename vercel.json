@@ -1,7 +1,12 @@
 {
-  "buildCommand": "cd frontend && npm install && npm run build",
+  "buildCommand": "cd frontend && npm install --include=dev && npm run build",
   "outputDirectory": "frontend/dist",
-  "framework": "vite",
+  "installCommand": "cd backend && npm install --include=dev && cd ../frontend && npm install --include=dev",
+  "functions": {
+    "api/index.js": {
+      "includeFiles": "backend/src/**"
+    }
+  },
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },
     { "source": "/((?!api/).*)", "destination": "/index.html" }
