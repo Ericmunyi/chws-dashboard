@@ -4,34 +4,75 @@ const jwt = require('jsonwebtoken');
 const { v4: uuidv4 } = require('uuid');
 const { db } = require('../models');
 const logger = require('../config/logger');
-const darajaService = require('./darajaService');
+const africaTalkingService = require('./africaTalkingService');
 
 const OTP_EXPIRY_MINUTES = 5;
 const PORTAL_TOKEN_EXPIRY = '30m';
 
+function normalizePhone(phone) {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (!digits) return '';
+
+  if (digits.startsWith('254')) return `+254${digits.slice(3)}`;
+  if (digits.startsWith('0')) return `+254${digits.slice(1)}`;
+  if (digits.length === 9) return `+254${digits}`;
+
+  return `+${digits}`;
+}
+
+function phoneVariants(phone) {
+  const normalized = normalizePhone(phone);
+  if (!normalized) return [];
+
+  const international = normalized.slice(1);
+  const national = international.slice(3);
+
+  return [
+    ...new Set([
+      String(phone).trim(),
+      normalized,
+      international,
+      `0${national}`,
+      national,
+    ]),
+  ];
+}
+
+async function findPatientByPhone(phone) {
+  const variants = phoneVariants(phone);
+  if (variants.length === 0) return null;
+
+  return db.patients()
+    .where(function () {
+      this.whereIn('phone', variants).orWhereIn('alt_phone', variants);
+    })
+    .first();
+}
+
 const patientPortalService = {
   async sendOtp(phone) {
-    const patient = await db.patients().where({ phone }).orWhere({ alt_phone: phone }).first();
+    const patient = await findPatientByPhone(phone);
     if (!patient) {
       return { exists: false, message: 'No patient found with this phone number' };
     }
 
     const otp = crypto.randomInt(100000, 999999).toString();
     const otpHash = await bcrypt.hash(otp, 10);
+    const otpPhone = normalizePhone(phone);
 
     await db.knex('patient_otps').insert({
       id: uuidv4(),
-      phone,
+      phone: otpPhone,
       otp_hash: otpHash,
       expires_at: new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000),
     });
 
     const message = `Your CHW Dashboard OTP is ${otp}. Valid for ${OTP_EXPIRY_MINUTES} minutes. Do not share this code.`;
 
-    const sent = await darajaService.sendSms(phone, message);
+    const sent = await africaTalkingService.sendSms(otpPhone, message);
 
     if (!sent && process.env.NODE_ENV !== 'production') {
-      logger.info(`OTP for ${phone}: ${otp}`);
+      logger.info(`OTP for ${otpPhone}: ${otp}`);
     }
 
     return {
@@ -41,13 +82,13 @@ const patientPortalService = {
   },
 
   async verifyOtp(phone, otp) {
-    const patient = await db.patients().where({ phone }).orWhere({ alt_phone: phone }).first();
+    const patient = await findPatientByPhone(phone);
     if (!patient) {
       throw new Error('Patient not found');
     }
 
     const otpRecord = await db.knex('patient_otps')
-      .where({ phone, used: false })
+      .where({ phone: normalizePhone(phone), used: false })
       .andWhere('expires_at', '>', new Date())
       .orderBy('created_at', 'desc')
       .first();
