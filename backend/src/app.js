@@ -33,7 +33,7 @@ app.set('trust proxy', 1);
 
 app.use(helmet({ contentSecurityPolicy: false }));
 app.use(compression());
-app.use(cors({ origin: process.env.FRONTEND_URL || '*', credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 // If the platform (e.g. Vercel) already parsed the body, skip body-parser stream reads
 app.use((req, res, next) => {
   if (req.body && typeof req.body === 'object' && Object.keys(req.body).length > 0) {
