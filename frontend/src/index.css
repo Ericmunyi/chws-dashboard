@@ -43,6 +43,28 @@
   }
 }
 
+@keyframes slide-in-word {
+  from {
+    opacity: 0;
+    transform: translateY(30px) rotateX(-90deg);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(0deg);
+  }
+}
+
+@keyframes fade-in-blur {
+  from {
+    opacity: 0;
+    filter: blur(10px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
 .animate-float {
   animation: float 6s ease-in-out infinite;
 }
@@ -71,6 +93,44 @@
 .animate-fade-in-up-delay-2 {
   animation: fade-in-up 0.6s ease-out;
   animation-delay: 0.2s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+}
+
+.animate-slide-word {
+  animation: slide-in-word 0.8s ease-out;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  transform-origin: bottom;
+}
+
+.animate-slide-word-delay-1 {
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.1s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  transform-origin: bottom;
+}
+
+.animate-slide-word-delay-2 {
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.3s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  transform-origin: bottom;
+}
+
+.animate-slide-word-delay-3 {
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.5s;
+  opacity: 0;
+  animation-fill-mode: forwards;
+  transform-origin: bottom;
+}
+
+.animate-fade-blur {
+  animation: fade-in-blur 1s ease-out;
+  animation-delay: 0.8s;
   opacity: 0;
   animation-fill-mode: forwards;
 }

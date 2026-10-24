@@ -71,13 +71,19 @@ export default function LoginPage() {
                     eCHIS & OpenMRS Integrated
                   </div>
                   <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
-                    Transforming
-                    <span className="block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                      Community Health
-                    </span>
-                    <span className="block">Across Africa</span>
+                    <div className="flex flex-wrap gap-x-3">
+                      <span className="animate-slide-word">Transforming</span>
+                      <span className="animate-slide-word-delay-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                        Community
+                      </span>
+                      <span className="animate-slide-word-delay-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                        Health
+                      </span>
+                      <span className="animate-slide-word-delay-3">Across</span>
+                      <span className="animate-slide-word-delay-3">Africa</span>
+                    </div>
                   </h1>
-                  <p className="text-lg text-slate-400 max-w-xl">
+                  <p className="text-lg text-slate-400 max-w-xl animate-fade-blur">
                     Empowering Community Health Workers with intelligent tools for patient care, data management, and seamless integration with national health systems.
                   </p>
                 </div>
