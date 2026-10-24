@@ -9,6 +9,16 @@ import { setOfflineQueue } from './services/api';
 import App from './App';
 import './index.css';
 
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.getRegistrations().then((registrations) => {
+      for (const registration of registrations) {
+        registration.unregister();
+      }
+    });
+  });
+}
+
 function OfflineInit() {
   const { queueRequest } = useOffline();
   useEffect(() => {
