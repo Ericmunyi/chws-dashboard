@@ -72,15 +72,15 @@ export default function LoginPage() {
                   </div>
                   <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
                     <div className="flex flex-wrap gap-x-3">
-                      <span className="animate-slide-word">Transforming</span>
-                      <span className="animate-slide-word-delay-1 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                      <span className="animate-slide-word hover:scale-105 transition-transform inline-block">Transforming</span>
+                      <span className="animate-slide-word-delay-1 hover:scale-105 transition-transform inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                         Community
                       </span>
-                      <span className="animate-slide-word-delay-2 bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                      <span className="animate-slide-word-delay-2 hover:scale-105 transition-transform inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                         Health
                       </span>
-                      <span className="animate-slide-word-delay-3">Across</span>
-                      <span className="animate-slide-word-delay-3">Africa</span>
+                      <span className="animate-slide-word-delay-3 hover:scale-105 transition-transform inline-block">Across</span>
+                      <span className="animate-slide-word-delay-3 hover:scale-105 transition-transform inline-block">Africa</span>
                     </div>
                   </h1>
                   <p className="text-lg text-slate-400 max-w-xl animate-fade-blur">
