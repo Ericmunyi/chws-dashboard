@@ -101,14 +101,30 @@ router.post(
       const nationalId = (req.body.nationalId || '').trim() || null;
       const phone = (req.body.phone || '').trim() || null;
 
-    const [{ count }] = await db.patients().count('id as count');
-    const seq = parseInt(count) + 1;
-    const recordNumber = `PT-${String(seq).padStart(4, '0')}`;
+    let patient;
+    try {
+      let recordNumber = null;
+      try {
+        const hasCol = await db.knex.schema.hasColumn('patients', 'record_number');
+        if (hasCol) {
+          const [{ count }] = await db.patients().count('id as count');
+          const seq = parseInt(count) + 1;
+          recordNumber = `PT-${String(seq).padStart(4, '0')}`;
+        } else {
+          // Create column if missing
+          try {
+            await db.knex.schema.alterTable('patients', (table) => {
+              table.string('record_number', 20);
+            });
+            const [{ count }] = await db.patients().count('id as count');
+            const seq = parseInt(count) + 1;
+            recordNumber = `PT-${String(seq).padStart(4, '0')}`;
+          } catch (e) {}
+        }
+      } catch (e) {}
 
-    const [patient] = await db.patients()
-      .insert({
+      const insertData = {
         id: uuidv4(),
-        record_number: recordNumber,
         first_name: req.body.firstName,
         last_name: req.body.lastName,
         middle_name: req.body.middleName,
@@ -123,8 +139,20 @@ router.post(
         assigned_chw_id: req.body.assignedChwId || req.user.id,
         address: req.body.address,
         status: 'active',
-      })
-      .returning('*');
+      };
+      if (recordNumber) insertData.record_number = recordNumber;
+
+      try {
+        [patient] = await db.patients().insert(insertData).returning('*');
+      } catch (e) {
+        // Try without returning for some DBs
+        const res = await db.patients().insert(insertData);
+        patient = await db.patients().where({ id: insertData.id }).first();
+      }
+    } catch (err) {
+      next(err);
+      return;
+    }
 
       await syncService.queueEntity(SYNC_ENTITY_TYPES.PATIENT, patient.id, SYNC_DIRECTIONS.PUSH_TO_ECHIS);
 
