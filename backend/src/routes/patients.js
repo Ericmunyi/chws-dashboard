@@ -41,7 +41,7 @@ router.get(
         query = query.where('patients.assigned_chw_id', req.user.id);
       }
 
-      const [{ count }] = await query.clone().clearSelect().count('patients.id as count');
+      const [{ count }] = await query.clone().clearSelect().clearOrder().count('patients.id as count');
       const patients = await query.limit(parseInt(limit)).offset(offset);
 
       res.json({
@@ -101,25 +101,30 @@ router.post(
       const nationalId = (req.body.nationalId || '').trim() || null;
       const phone = (req.body.phone || '').trim() || null;
 
-      const [patient] = await db.patients()
-        .insert({
-          id: uuidv4(),
-          first_name: req.body.firstName,
-          last_name: req.body.lastName,
-          middle_name: req.body.middleName,
-          date_of_birth: req.body.dateOfBirth,
-          gender: req.body.gender,
-          phone,
-          national_id: nationalId,
-          village: req.body.village,
-          ward: req.body.ward,
-          sub_county: req.body.subCounty,
-          county: req.body.county,
-          assigned_chw_id: req.body.assignedChwId || req.user.id,
-          address: req.body.address,
-          status: 'active',
-        })
-        .returning('*');
+    const [{ count }] = await db.patients().count('id as count');
+    const seq = parseInt(count) + 1;
+    const recordNumber = `PT-${String(seq).padStart(4, '0')}`;
+
+    const [patient] = await db.patients()
+      .insert({
+        id: uuidv4(),
+        record_number: recordNumber,
+        first_name: req.body.firstName,
+        last_name: req.body.lastName,
+        middle_name: req.body.middleName,
+        date_of_birth: req.body.dateOfBirth,
+        gender: req.body.gender,
+        phone,
+        national_id: nationalId,
+        village: req.body.village,
+        ward: req.body.ward,
+        sub_county: req.body.subCounty,
+        county: req.body.county,
+        assigned_chw_id: req.body.assignedChwId || req.user.id,
+        address: req.body.address,
+        status: 'active',
+      })
+      .returning('*');
 
       await syncService.queueEntity(SYNC_ENTITY_TYPES.PATIENT, patient.id, SYNC_DIRECTIONS.PUSH_TO_ECHIS);
 
@@ -160,5 +165,34 @@ router.put('/:id', authenticate, authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER,
     next(err);
   }
 });
+
+router.delete(
+  '/:id',
+  authenticate,
+  authorize(USER_ROLES.ADMIN, USER_ROLES.MANAGER),
+  async (req, res, next) => {
+    try {
+      const deleted = await db.knex.transaction(async (trx) => {
+        const patient = await trx('patients').where({ id: req.params.id }).first();
+        if (!patient) return null;
+
+        await trx('chw_activities').where({ patient_id: req.params.id }).del();
+        await trx('sync_log')
+          .where({ entity_type: SYNC_ENTITY_TYPES.PATIENT, entity_id: req.params.id })
+          .del();
+        await trx('patients').where({ id: req.params.id }).del();
+        return patient;
+      });
+
+      if (!deleted) {
+        return res.status(404).json({ error: 'Patient not found' });
+      }
+
+      res.json({ message: 'Patient deleted successfully', id: deleted.id });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
 
 module.exports = router;
