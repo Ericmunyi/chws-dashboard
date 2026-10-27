@@ -33,11 +33,10 @@ const runMigrations = async () => {
 runMigrations().catch(() => {});
 
 // Vercel Node functions receive native (req, res) — Express handles them directly
-module.exports = async (req, res) => {
-  try {
-    await runMigrations();
-  } catch (e) {
-    // ignore
-  }
-  return app(req, res);
+module.exports = (req, res) => {
+  runMigrations()
+    .catch(() => {})
+    .finally(() => {
+      app(req, res);
+    });
 };
