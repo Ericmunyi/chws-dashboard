@@ -3,32 +3,18 @@ import { authAPI } from '../services/api';
 
 const AuthContext = createContext(null);
 
+function clearSession() {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+  localStorage.removeItem('user');
+}
+
 export function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const stored = localStorage.getItem('user');
-    return stored ? JSON.parse(stored) : null;
-  });
-  const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    const token = localStorage.getItem('accessToken');
-    if (token) {
-      authAPI
-        .me()
-        .then((u) => {
-          setUser(u);
-          localStorage.setItem('user', JSON.stringify(u));
-        })
-        .catch(() => {
-          setUser(null);
-          localStorage.removeItem('accessToken');
-          localStorage.removeItem('refreshToken');
-          localStorage.removeItem('user');
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-    }
+    clearSession();
   }, []);
 
   const login = useCallback(async (username, password) => {
@@ -46,9 +32,7 @@ export function AuthProvider({ children }) {
       await authAPI.logout({ refreshToken });
     } catch {
     } finally {
-      localStorage.removeItem('accessToken');
-      localStorage.removeItem('refreshToken');
-      localStorage.removeItem('user');
+      clearSession();
       setUser(null);
     }
   }, []);
