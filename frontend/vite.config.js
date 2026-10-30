@@ -8,6 +8,7 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       selfDestroying: true,
+      injectRegister: null,
       includeAssets: ['vite.svg'],
       manifest: {
         name: 'CHWS Dashboard',
