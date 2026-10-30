@@ -46,7 +46,7 @@ router.get(
       if (departmentId) query = query.where('department_queue.department_id', departmentId);
       if (status) query = query.where('department_queue.status', status);
 
-      const [{ count }] = await query.clone().clearSelect().count('department_queue.id as count');
+      const [{ count }] = await query.clone().clearSelect().clearOrder().count('department_queue.id as count');
       const entries = await query.limit(parseInt(limit)).offset(offset);
 
       res.json({

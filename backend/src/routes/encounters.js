@@ -43,7 +43,7 @@ router.get(
         });
       }
 
-      const [{ count }] = await query.clone().clearSelect().count('encounters.id as count');
+      const [{ count }] = await query.clone().clearSelect().clearOrder().count('encounters.id as count');
       const encounters = await query.limit(parseInt(limit)).offset(offset);
 
       res.json({

@@ -9,6 +9,7 @@ const dashboardService = {
     const [
       totalPatients, totalHouseholds, totalCHWs, totalEncounters,
       pendingSyncs, failedSyncs, activeVisitsThisMonth, totalReferrals,
+      visitsToday,
     ] = await Promise.all([
       db.patients().where({ status: 'active', ...chwFilter }).count('id as count').first(),
       db.households().where({ status: 'active', ...(isChw ? { assigned_chw_id: user.id } : {}) }).count('id as count').first(),
@@ -21,6 +22,11 @@ const dashboardService = {
         .where(chwActivitiesFilter)
         .count('id as count').first(),
       db.encounters().where({ encounter_type: 'referral' }).count('id as count').first(),
+      db.encounters()
+        .where('encounter_datetime', '>=', new Date().toISOString().slice(0, 10))
+        .where('encounter_datetime', '<', new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 10))
+        .where(isChw ? { chw_id: user.id } : {})
+        .count('id as count').first(),
     ]);
 
     const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
@@ -46,6 +52,7 @@ const dashboardService = {
       activeVisitsThisMonth: parseInt(activeVisitsThisMonth.count),
       syncSuccessRate,
       totalReferrals: parseInt(totalReferrals.count),
+      visitsToday: parseInt(visitsToday.count),
     };
   },
 
@@ -173,7 +180,9 @@ const dashboardService = {
       .groupBy('gender');
 
     const rows = await db.patients().where(chwFilter).select('date_of_birth');
+    const AGE_GROUPS = ['infant', 'toddler', 'child', 'young_adult', 'adult', 'elderly'];
     const ageGroups = {};
+    for (const g of AGE_GROUPS) ageGroups[g] = 0;
     const now = new Date();
     for (const r of rows) {
       const dob = new Date(r.date_of_birth);
@@ -187,9 +196,9 @@ const dashboardService = {
       else if (age <= 35) group = 'young_adult';
       else if (age <= 60) group = 'adult';
       else group = 'elderly';
-      ageGroups[group] = (ageGroups[group] || 0) + 1;
+      ageGroups[group] += 1;
     }
-    const byAgeGroup = Object.entries(ageGroups).map(([age_group, count]) => ({ age_group, count: String(count) }));
+    const byAgeGroup = AGE_GROUPS.map((age_group) => ({ age_group, count: String(ageGroups[age_group]) }));
 
     const byVillage = await db.patients()
       .select('village')

@@ -79,7 +79,7 @@ router.get(
         query = query.where('p.assigned_chw_id', req.user.id);
       }
 
-      const [{ count }] = await query.clone().clearSelect().count('appointments.id as count');
+      const [{ count }] = await query.clone().clearSelect().clearOrder().count('appointments.id as count');
       const appointments = await query.limit(parseInt(limit)).offset(offset);
 
       res.json({

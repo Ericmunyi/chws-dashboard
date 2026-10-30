@@ -32,7 +32,7 @@ router.get(
         query = query.where('encounters.chw_id', req.user.id);
       }
 
-      const [{ count }] = await query.clone().clearSelect().count('encounters.id as count');
+      const [{ count }] = await query.clone().clearSelect().clearOrder().count('encounters.id as count');
       const referrals = await query.limit(parseInt(limit)).offset(offset);
 
       const parsed = referrals.map((r) => ({

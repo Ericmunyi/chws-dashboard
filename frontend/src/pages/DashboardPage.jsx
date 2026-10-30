@@ -55,6 +55,13 @@ export default function DashboardPage() {
 
   const statsCards = [
     {
+      label: 'Clients Today',
+      value: summary?.visitsToday?.toLocaleString(),
+      icon: UserCheck,
+      color: 'blue',
+      subtitle: 'visited the facility today',
+    },
+    {
       label: 'Total Patients',
       value: summary?.totalPatients?.toLocaleString(),
       icon: Users,

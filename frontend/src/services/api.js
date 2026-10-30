@@ -139,6 +139,7 @@ export const patientsAPI = {
   get: (id) => api.get(`/patients/${id}`).then((r) => r.data),
   create: (data) => api.post('/patients', data).then((r) => r.data),
   update: (id, data) => api.put(`/patients/${id}`, data).then((r) => r.data),
+  remove: (id) => api.delete(`/patients/${id}`).then((r) => r.data),
 };
 
 export const householdsAPI = {

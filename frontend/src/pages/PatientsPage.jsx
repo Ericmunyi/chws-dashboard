@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Search, Plus, ChevronLeft, ChevronRight, Loader2, ArrowRight } from 'lucide-react';
+import { Search, Plus, ChevronLeft, ChevronRight, Loader2, ArrowRight, Trash2 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import { patientsAPI } from '../services/api';
 import { useAuth } from '../context/AuthContext';
@@ -15,6 +15,7 @@ export default function PatientsPage() {
   const [pagination, setPagination] = useState(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [referPatient, setReferPatient] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
 
   const fetchPatients = useCallback(async () => {
     setLoading(true);
@@ -30,6 +31,24 @@ export default function PatientsPage() {
   useEffect(() => {
     fetchPatients();
   }, [fetchPatients]);
+
+  const handleDelete = async (patient) => {
+    const confirmed = window.confirm(
+      `Delete patient ${patient.first_name} ${patient.last_name}? This cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingId(patient.id);
+    try {
+      await patientsAPI.remove(patient.id);
+      toast.success('Patient deleted successfully');
+      fetchPatients();
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Failed to delete patient');
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   return (
     <div>
@@ -52,7 +71,7 @@ export default function PatientsPage() {
             <Search className="absolute left-3 top-2.5 w-4 h-4 text-gray-400" />
             <input
               type="text"
-              placeholder="Search by name, ID, or phone..."
+              placeholder="Search by name, record no., ID, or phone..."
               value={search}
               onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="input pl-10"
@@ -72,6 +91,7 @@ export default function PatientsPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-gray-100 bg-gray-50">
+                  <th className="text-left px-6 py-3 text-gray-500 font-medium">Record No.</th>
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">Name</th>
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">National ID</th>
                   <th className="text-left px-6 py-3 text-gray-500 font-medium">Gender</th>
@@ -85,6 +105,9 @@ export default function PatientsPage() {
               <tbody>
                 {patients.map((p) => (
                   <tr key={p.id} className="border-b border-gray-50 hover:bg-gray-50 cursor-pointer">
+                    <td className="px-6 py-3 font-mono text-xs text-primary-700">
+                      {p.record_number || '—'}
+                    </td>
                     <td className="px-6 py-3 font-medium">
                       {p.first_name} {p.last_name}
                     </td>
@@ -105,15 +128,31 @@ export default function PatientsPage() {
                       {new Date(p.created_at).toLocaleDateString()}
                     </td>
                     <td className="px-6 py-3">
-                      {hasRole('admin', 'manager', 'chw') && (
-                        <button
-                          onClick={() => setReferPatient(p)}
-                          className="btn-secondary text-xs"
-                        >
-                          <ArrowRight className="w-3 h-3 mr-1" />
-                          Refer
-                        </button>
-                      )}
+                      <div className="flex gap-2">
+                        {hasRole('admin', 'manager', 'chw') && (
+                          <button
+                            onClick={() => setReferPatient(p)}
+                            className="btn-secondary text-xs"
+                          >
+                            <ArrowRight className="w-3 h-3 mr-1" />
+                            Refer
+                          </button>
+                        )}
+                        {hasRole('admin', 'manager') && (
+                          <button
+                            onClick={() => handleDelete(p)}
+                            disabled={deletingId === p.id}
+                            className="btn-secondary text-xs text-red-600 hover:text-red-700 disabled:opacity-50"
+                          >
+                            {deletingId === p.id ? (
+                              <Loader2 className="w-3 h-3 mr-1 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3 h-3 mr-1" />
+                            )}
+                            Delete
+                          </button>
+                        )}
+                      </div>
                     </td>
                   </tr>
                 ))}

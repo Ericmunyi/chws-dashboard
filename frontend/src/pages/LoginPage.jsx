@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, Eye, EyeOff, Loader2, ArrowRight, Users, BarChart3, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import toast from 'react-hot-toast';
+
+const LOCATIONS = ['KENYA', 'AFRICA', 'AND THE WORLD'];
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -11,6 +13,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [locationIndex, setLocationIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLocationIndex((i) => (i + 1) % LOCATIONS.length);
+    }, 2400);
+    return () => clearInterval(id);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -72,15 +82,22 @@ export default function LoginPage() {
                   </div>
                   <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white leading-tight">
                     <div className="flex flex-wrap gap-x-3">
-                      <span className="animate-slide-word hover:scale-105 transition-transform inline-block">Transforming</span>
-                      <span className="animate-slide-word-delay-1 hover:scale-105 transition-transform inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
+                      <span className="animate-slide-word inline-block">Transforming</span>
+                      <span className="animate-slide-word-delay-1 inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                         Community
                       </span>
-                      <span className="animate-slide-word-delay-2 hover:scale-105 transition-transform inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
+                      <span className="animate-slide-word-delay-2 inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent animate-gradient-x">
                         Health
                       </span>
-                      <span className="animate-slide-word-delay-3 hover:scale-105 transition-transform inline-block">Across</span>
-                      <span className="animate-slide-word-delay-3 hover:scale-105 transition-transform inline-block">Africa</span>
+                      <span className="animate-slide-word-delay-3 inline-block">Across</span>
+                    </div>
+                    <div className="mt-2 min-h-[1.15em]">
+                      <span
+                        key={LOCATIONS[locationIndex]}
+                        className="animate-location-word inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"
+                      >
+                        {LOCATIONS[locationIndex]}
+                      </span>
                     </div>
                   </h1>
                   <p className="text-lg text-slate-400 max-w-xl animate-fade-blur">
