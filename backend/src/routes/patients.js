@@ -98,7 +98,11 @@ router.post(
   ],
   async (req, res, next) => {
     try {
-      const nationalId = (req.body.nationalId || '').trim() || null;
+      const rawNationalId = (req.body.nationalId || '').trim();
+      const placeholderNationalIds = ['', 'nil', 'none', 'n/a', 'na', '-', 'null', 'no id', 'unknown'];
+      const nationalId = placeholderNationalIds.includes(rawNationalId.toLowerCase())
+        ? null
+        : rawNationalId;
       const phone = (req.body.phone || '').trim() || null;
 
     let patient;
@@ -146,6 +150,26 @@ router.post(
         status: 'active',
       };
 
+      const isUniqueViolation = (e) => {
+        const text = `${e.constraint || ''} ${e.detail || ''} ${e.message || ''}`;
+        return e.code === '23505' || /unique|duplicate/i.test(text);
+      };
+      const isNationalIdConflict = (e) =>
+        isUniqueViolation(e) &&
+        /national_id/i.test(`${e.constraint || ''} ${e.detail || ''} ${e.message || ''}`);
+
+      if (nationalId) {
+        const existing = await db.patients()
+          .whereRaw('LOWER(national_id) = ?', [nationalId.toLowerCase()])
+          .first();
+        if (existing) {
+          return res.status(409).json({
+            error: 'Conflict',
+            message: 'A patient with this national ID already exists',
+          });
+        }
+      }
+
       for (let attempt = 0; attempt < 5 && !patient; attempt++) {
         if (hasRecordNumber) {
           try {
@@ -158,12 +182,27 @@ router.post(
         try {
           [patient] = await db.patients().insert(insertData).returning('*');
         } catch (e) {
-          const isDuplicate =
-            e.code === '23505' || /unique|duplicate/i.test(e.message || '');
-          if (isDuplicate && insertData.record_number) continue;
+          if (isNationalIdConflict(e)) {
+            return res.status(409).json({
+              error: 'Conflict',
+              message: 'A patient with this national ID already exists',
+            });
+          }
+          if (isUniqueViolation(e) && insertData.record_number) continue;
           // Try without returning for some DBs
-          await db.patients().insert(insertData);
-          patient = await db.patients().where({ id: insertData.id }).first();
+          try {
+            await db.patients().insert(insertData);
+            patient = await db.patients().where({ id: insertData.id }).first();
+          } catch (e2) {
+            if (isNationalIdConflict(e2)) {
+              return res.status(409).json({
+                error: 'Conflict',
+                message: 'A patient with this national ID already exists',
+              });
+            }
+            if (isUniqueViolation(e2) && insertData.record_number) continue;
+            throw e2;
+          }
         }
       }
 
