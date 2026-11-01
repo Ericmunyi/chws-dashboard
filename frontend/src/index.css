@@ -85,7 +85,6 @@
 
 .animate-gradient-x {
   background-size: 200% 200%;
-  animation: gradient-x 8s ease infinite;
 }
 
 .animate-fade-in-up {
@@ -107,32 +106,31 @@
 }
 
 .animate-slide-word {
-  animation: slide-in-word 0.8s ease-out, word-float 3s ease-in-out infinite;
-  animation-delay: 0s, 1s;
+  animation: slide-in-word 0.8s ease-out;
   opacity: 0;
   animation-fill-mode: forwards;
   transform-origin: bottom;
 }
 
 .animate-slide-word-delay-1 {
-  animation: slide-in-word 0.8s ease-out, word-float 3s ease-in-out infinite;
-  animation-delay: 0.1s, 1.1s;
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.1s;
   opacity: 0;
   animation-fill-mode: forwards;
   transform-origin: bottom;
 }
 
 .animate-slide-word-delay-2 {
-  animation: slide-in-word 0.8s ease-out, word-float 3s ease-in-out infinite;
-  animation-delay: 0.3s, 1.3s;
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.3s;
   opacity: 0;
   animation-fill-mode: forwards;
   transform-origin: bottom;
 }
 
 .animate-slide-word-delay-3 {
-  animation: slide-in-word 0.8s ease-out, word-float 3s ease-in-out infinite;
-  animation-delay: 0.5s, 1.5s;
+  animation: slide-in-word 0.8s ease-out;
+  animation-delay: 0.5s;
   opacity: 0;
   animation-fill-mode: forwards;
   transform-origin: bottom;
@@ -158,8 +156,7 @@
 
 .animate-location-word {
   background-size: 200% 200%;
-  animation: location-word-in 0.7s ease-out both, gradient-x 8s ease infinite,
-    word-float 3s ease-in-out 1.05s infinite;
+  animation: location-word-in 0.7s ease-out both;
   transform-origin: bottom;
 }
 

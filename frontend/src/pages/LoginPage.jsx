@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, Eye, EyeOff, Loader2, ArrowRight, Users, BarChart3, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -13,14 +13,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [locationIndex, setLocationIndex] = useState(0);
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      setLocationIndex((i) => (i + 1) % LOCATIONS.length);
-    }, 2400);
-    return () => clearInterval(id);
-  }, []);
+  const [locationIndex] = useState(0);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
