@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { Activity, Eye, EyeOff, Loader2, ArrowRight, Users, BarChart3, Shield } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
@@ -13,7 +13,14 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [locationIndex] = useState(0);
+  const [locationIndex, setLocationIndex] = useState(0);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      setLocationIndex((i) => (i + 1) % LOCATIONS.length);
+    }, 2400);
+    return () => clearInterval(id);
+  }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -87,7 +94,7 @@ export default function LoginPage() {
                     <div className="mt-2 min-h-[1.15em]">
                       <span
                         key={LOCATIONS[locationIndex]}
-                        className="animate-location-word inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"
+                        className="animate-location-word inline-block bg-gradient-to-r from-cyan-300 via-sky-400 to-fuchsia-500 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(34,211,238,0.55)]"
                       >
                         {LOCATIONS[locationIndex]}
                       </span>
