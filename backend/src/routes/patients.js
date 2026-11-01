@@ -103,25 +103,30 @@ router.post(
 
     let patient;
     try {
-      let recordNumber = null;
+      let hasRecordNumber = false;
       try {
-        const hasCol = await db.knex.schema.hasColumn('patients', 'record_number');
-        if (hasCol) {
-          const [{ count }] = await db.patients().count('id as count');
-          const seq = parseInt(count) + 1;
-          recordNumber = `PT-${String(seq).padStart(4, '0')}`;
-        } else {
-          // Create column if missing
-          try {
-            await db.knex.schema.alterTable('patients', (table) => {
-              table.string('record_number', 20);
-            });
-            const [{ count }] = await db.patients().count('id as count');
-            const seq = parseInt(count) + 1;
-            recordNumber = `PT-${String(seq).padStart(4, '0')}`;
-          } catch (e) {}
+        hasRecordNumber = await db.knex.schema.hasColumn('patients', 'record_number');
+        if (!hasRecordNumber) {
+          await db.knex.schema.alterTable('patients', (table) => {
+            table.string('record_number', 20);
+          });
+          hasRecordNumber = true;
         }
-      } catch (e) {}
+      } catch (e) {
+        hasRecordNumber = false;
+      }
+
+      const nextRecordNumber = async () => {
+        const rows = await db.patients()
+          .select('record_number')
+          .whereNotNull('record_number');
+        let maxSeq = 0;
+        for (const row of rows) {
+          const match = /^PT-(\d+)$/.exec(row.record_number || '');
+          if (match) maxSeq = Math.max(maxSeq, parseInt(match[1], 10));
+        }
+        return `PT-${String(maxSeq + 1).padStart(4, '0')}`;
+      };
 
       const insertData = {
         id: uuidv4(),
@@ -140,14 +145,30 @@ router.post(
         address: req.body.address,
         status: 'active',
       };
-      if (recordNumber) insertData.record_number = recordNumber;
 
-      try {
-        [patient] = await db.patients().insert(insertData).returning('*');
-      } catch (e) {
-        // Try without returning for some DBs
-        const res = await db.patients().insert(insertData);
-        patient = await db.patients().where({ id: insertData.id }).first();
+      for (let attempt = 0; attempt < 5 && !patient; attempt++) {
+        if (hasRecordNumber) {
+          try {
+            insertData.record_number = await nextRecordNumber();
+          } catch (e) {
+            delete insertData.record_number;
+          }
+        }
+
+        try {
+          [patient] = await db.patients().insert(insertData).returning('*');
+        } catch (e) {
+          const isDuplicate =
+            e.code === '23505' || /unique|duplicate/i.test(e.message || '');
+          if (isDuplicate && insertData.record_number) continue;
+          // Try without returning for some DBs
+          await db.patients().insert(insertData);
+          patient = await db.patients().where({ id: insertData.id }).first();
+        }
+      }
+
+      if (!patient) {
+        throw new Error('Failed to create patient');
       }
     } catch (err) {
       next(err);
