@@ -94,7 +94,7 @@ export default function LoginPage() {
                     <div className="mt-2 min-h-[1.15em]">
                       <span
                         key={LOCATIONS[locationIndex]}
-                        className="animate-location-word inline-block bg-gradient-to-r from-amber-300 via-orange-400 to-rose-500 bg-clip-text text-transparent drop-shadow-[0_0_18px_rgba(251,146,60,0.55)]"
+                        className="animate-location-word inline-block bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent"
                       >
                         {LOCATIONS[locationIndex]}
                       </span>
